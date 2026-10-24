@@ -1,0 +1,145 @@
+# Derived from giovtorres/slurm-docker-cluster 3.0.2 (MIT). See NOTICE and slurm/LICENSE.slurm-docker-cluster.
+# Changes from upstream: only mysql, slurmdbd, slurmctld and cpu-worker are kept; the Slurm services use
+# rayslurm-node (upstream image + Ray/PyTorch CPU venv, slurm/Dockerfile); the repo is mounted read-only at
+# /opt/rayslurm; no ports are published to the host; images are pinned in versions.env.
+# Run through the Makefile: docker compose -p slurm --env-file versions.env -f slurm/docker-compose.yml
+
+services:
+  mysql:
+    image: ${MARIADB_IMAGE}
+    hostname: mysql
+    container_name: mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: slurm_acct_db
+      MYSQL_USER: slurm
+      MYSQL_PASSWORD: password # lab-only default from upstream; never reachable from the host
+    volumes:
+      - var_lib_mysql:/var/lib/mysql
+    networks:
+      - slurm-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  slurmdbd:
+    image: rayslurm-node:${RAY_VERSION}-${SLURM_VERSION}
+    pull_policy: never
+    init: true
+    command: ["slurmdbd"]
+    container_name: slurmdbd
+    hostname: slurmdbd
+    environment:
+      MYSQL_USER: slurm
+      MYSQL_PASSWORD: password
+    volumes:
+      - etc_munge:/etc/munge
+      - etc_slurm:/etc/slurm
+      - var_log_slurm:/var/log/slurm
+    expose:
+      - "6819"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - slurm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pidof slurmdbd"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  slurmctld:
+    image: rayslurm-node:${RAY_VERSION}-${SLURM_VERSION}
+    build:
+      context: ..
+      dockerfile: slurm/Dockerfile
+      args:
+        SLURM_BASE_IMAGE: ${SLURM_BASE_IMAGE}
+        RAY_VERSION: ${RAY_VERSION}
+        TORCH_VERSION: ${TORCH_VERSION}
+        TORCHVISION_VERSION: ${TORCHVISION_VERSION}
+    init: true
+    command: ["slurmctld"]
+    container_name: slurmctld
+    hostname: slurmctld
+    privileged: true
+    working_dir: /data
+    environment:
+      SSH_ENABLE: "false"
+    volumes:
+      - etc_munge:/etc/munge:z
+      - etc_slurm:/etc/slurm:z
+      - slurm_jobdir:/data:z
+      - var_log_slurm:/var/log/slurm:z
+      - opt_modulefiles:/opt/modulefiles
+      - spack_root:/opt/spack
+      - ..:/opt/rayslurm:ro
+    expose:
+      - "6817"
+    depends_on:
+      slurmdbd:
+        condition: service_healthy
+    networks:
+      - slurm-network
+    healthcheck:
+      test: ["CMD-SHELL", "scontrol ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  cpu-worker:
+    image: rayslurm-node:${RAY_VERSION}-${SLURM_VERSION}
+    pull_policy: never
+    init: true
+    command: ["slurmd-cpu"]
+    working_dir: /data
+    privileged: true
+    # Ray's object store lives in /dev/shm; Docker's default size is small.
+    shm_size: "1gb"
+    environment:
+      # The upstream entrypoint resolves <project>-cpu-worker-<N> to name itself c<N>; must match `-p slurm`.
+      COMPOSE_PROJECT_NAME: slurm
+    volumes:
+      - etc_munge:/etc/munge
+      - etc_slurm:/etc/slurm
+      - slurm_jobdir:/data
+      - var_log_slurm:/var/log/slurm
+      - home_ood:/home/ood
+      - opt_modulefiles:/opt/modulefiles
+      - spack_root:/opt/spack
+      - ..:/opt/rayslurm:ro
+    expose:
+      - "6818"
+    depends_on:
+      slurmctld:
+        condition: service_healthy
+    networks:
+      - slurm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pidof slurmd"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      replicas: 2
+
+volumes:
+  etc_munge:
+  etc_slurm:
+  slurm_jobdir:
+  var_lib_mysql:
+  var_log_slurm:
+  home_ood:
+  opt_modulefiles:
+  spack_root:
+
+networks:
+  slurm-network:
+    driver: bridge
