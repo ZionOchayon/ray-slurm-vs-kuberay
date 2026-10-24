@@ -1,0 +1,7 @@
+ray-slurm-vs-kuberay
+Copyright 2026 Zion Ochayon
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes a docker-compose file derived from
+giovtorres/slurm-docker-cluster 3.0.2 (MIT License, Copyright (c) 2024 Giovanni Torres),
+https://github.com/giovtorres/slurm-docker-cluster. See slurm/LICENSE.slurm-docker-cluster.
