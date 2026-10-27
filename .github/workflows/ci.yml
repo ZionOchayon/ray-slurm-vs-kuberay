@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # Weekly, to catch rot such as an upstream image or wheel being removed (FR-32).
+  schedule:
+    - cron: "17 3 * * 1"
 
 permissions:
   contents: read
@@ -16,7 +19,12 @@ concurrency:
 jobs:
   slurm:
     # Sized for the private-repo runner (2 vCPU, 7 GB design target): docs/SPEC.md NFR-04.
-    runs-on: ubuntu-24.04
+    # arm64 runners are free only for public repos, so the arm64 entry (FR-30) runs once it is public.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{ fromJSON(github.event.repository.private && '["ubuntu-24.04"]' || '["ubuntu-24.04", "ubuntu-24.04-arm"]') }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.1
@@ -66,6 +74,27 @@ jobs:
           make verify RUN=ci-${{ github.run_id }}
           if docker exec slurmctld test -e /data/datasets; then echo "synthetic run created /data/datasets"; exit 1; fi
 
+      - name: Events (FR-13)
+        run: |
+          test "$(docker exec slurmctld grep -c '"event": "epoch_end"' /data/ray_results/ci-${{ github.run_id }}/events.jsonl)" -eq 2
+          for e in driver_start first_step run_end; do
+            docker exec slurmctld grep -q "\"event\": \"$e\"" /data/ray_results/ci-${{ github.run_id }}/events.jsonl
+          done
+
+      - name: Resume (FR-12)
+        run: |
+          make train-slurm EPOCHS=3 RUN=ci-${{ github.run_id }}
+          make verify RUN=ci-${{ github.run_id }}
+          docker exec slurmctld grep -q 'restored epoch=1' "/data/logs/ci-${{ github.run_id }}-$(cat .runs/ci-${{ github.run_id }}.jobid).out"
+
+      - name: Manual launcher (FR-23)
+        run: |
+          make train-slurm LAUNCHER=manual EPOCHS=1 RUN=ci-manual-${{ github.run_id }}
+          make verify RUN=ci-manual-${{ github.run_id }}
+
+      - name: Results table (SC-04)
+        run: bash bench/summarize.sh --check README.md
+
       - name: Negative verify
         run: |
           docker exec slurmctld rm -rf /data/ray_results/ci-${{ github.run_id }}/checkpoint_epoch_001
@@ -85,7 +114,48 @@ jobs:
       - uses: actions/upload-artifact@v7.0.2
         if: failure()
         with:
-          name: slurm-logs
+          name: slurm-logs-${{ matrix.runner }}
+          path: artifacts
+
+      - name: Down
+        if: always()
+        run: make down
+
+  kind:
+    # KubeRay side (FR-22, FR-30). CPU requests are lowered so 1 head + 1 worker + the submitter fit
+    # on the 2-vCPU private runner; limits and num-cpus stay at 2 (docs/NOTES.md).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      K8S_CPU_REQUEST: 500m
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Install kind, kubectl, helm (pinned, sha256-checked)
+        run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
+
+      - name: Train
+        run: make train-k8s EPOCHS=2 RUN=ci-k8s-${{ github.run_id }}
+
+      - name: Verify
+        run: make verify SCHED=k8s RUN=ci-k8s-${{ github.run_id }}
+
+      - name: RayJob backoffLimit field (drill D2)
+        run: kubectl --context kind-rayk8s explain rayjob.spec.backoffLimit
+
+      - name: Collect logs
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          kubectl --context kind-rayk8s get all -A -o wide > artifacts/get-all.txt 2>&1 || true
+          kubectl --context kind-rayk8s describe rayjobs,rayclusters,pods > artifacts/describe.txt 2>&1 || true
+          kubectl --context kind-rayk8s logs -n kuberay-system deploy/kuberay-operator > artifacts/operator.log 2>&1 || true
+          cp -r .data/k8s/logs artifacts/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v7.0.2
+        if: failure()
+        with:
+          name: kind-logs
           path: artifacts
 
       - name: Down
