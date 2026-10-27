@@ -1,7 +1,8 @@
 # Derived from giovtorres/slurm-docker-cluster 3.0.2 (MIT). See NOTICE and slurm/LICENSE.slurm-docker-cluster.
 # Changes from upstream: only mysql, slurmdbd, slurmctld and cpu-worker are kept; the Slurm services use
 # rayslurm-node (upstream image + Ray/PyTorch CPU venv, slurm/Dockerfile); the repo is mounted read-only at
-# /opt/rayslurm; no ports are published to the host; images are pinned in versions.env.
+# /opt/rayslurm; no ports are published to the host; images are pinned in versions.env; cpu-worker starts
+# through slurm/worker-entrypoint.sh.
 # Run through the Makefile: docker compose -p slurm --env-file versions.env -f slurm/docker-compose.yml
 
 services:
@@ -97,6 +98,8 @@ services:
     image: rayslurm-node:${RAY_VERSION}-${SLURM_VERSION}
     pull_policy: never
     init: true
+    # Waits for all replicas' DNS names, then runs the upstream entrypoint (start-up race, see the script).
+    entrypoint: ["bash", "/opt/rayslurm/slurm/worker-entrypoint.sh"]
     command: ["slurmd-cpu"]
     working_dir: /data
     privileged: true
@@ -105,6 +108,7 @@ services:
     environment:
       # The upstream entrypoint resolves <project>-cpu-worker-<N> to name itself c<N>; must match `-p slurm`.
       COMPOSE_PROJECT_NAME: slurm
+      CPU_WORKERS: "2" # = deploy.replicas
     volumes:
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
