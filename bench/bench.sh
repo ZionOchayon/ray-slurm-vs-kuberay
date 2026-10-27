@@ -2,7 +2,8 @@
 # `make bench` (SPEC FR-28): M1 and M2 on both schedulers, then the three drills on both, then
 # bench/summarize.py (results.csv, table.md, README block). One scheduler at a time, so the two lab
 # clusters never compete for the same CPUs; `docker stats` is sampled every 5 s for peak memory (NFR-04).
-# BENCH_SCHEDS limits the schedulers (default "slurm k8s"). Exit: 0 every step passed, 1 otherwise.
+# BENCH_SCHEDS limits the schedulers (default "slurm k8s"), BENCH_STEPS the steps (default
+# "m1 m2 kill-worker preempt two-jobs"). Exit: 0 every step passed, 1 otherwise.
 set -euo pipefail
 : "${REPS_M1:?}" "${REPS_M2:?}" "${REPS:?}"
 mkdir -p .data/bench docs/results/raw
@@ -45,11 +46,14 @@ for sched in ${BENCH_SCHEDS:-slurm k8s}; do
   fi
   sample_stats "$stats" &
   sampler=$!
-  step env SCHED="$sched" bash bench/m1_submit_to_first_step.sh
-  step env SCHED="$sched" bash bench/m2_epoch_time.sh
-  step env SCHED="$sched" bash drills/kill-worker.sh
-  step env SCHED="$sched" bash drills/preempt.sh
-  step env SCHED="$sched" bash drills/two-jobs.sh
+  for s in ${BENCH_STEPS:-m1 m2 kill-worker preempt two-jobs}; do
+    case $s in
+      m1) step env SCHED="$sched" bash bench/m1_submit_to_first_step.sh ;;
+      m2) step env SCHED="$sched" bash bench/m2_epoch_time.sh ;;
+      kill-worker | preempt | two-jobs) step env SCHED="$sched" bash "drills/$s.sh" ;;
+      *) echo "bench: unknown step $s" >&2; failed=1 ;;
+    esac
+  done
   kill "$sampler" 2>/dev/null || true
   wait "$sampler" 2>/dev/null || true
   write_peaks "$sched" "$stats"

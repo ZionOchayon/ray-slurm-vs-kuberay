@@ -48,13 +48,22 @@ for config in "${configs[@]}"; do
     wait "$TRAIN_PID" || rc=$?
     out=$(analyze resume "$run" --since "$ts" || true)
     echo "$out"
+    # D2's pass rule (SPEC §11) does not include C4: after a head pod is recreated, Ray may place both
+    # Train workers on the new head before the worker pod rejoins (SPREAD is best effort). C4 is
+    # recorded as its own row instead.
+    verify_run "$run" || true
     verified=0
-    verify_run "$run" && verified=1
+    if grep -q "^verify $run:" ".data/drills/$run.verify" && ! grep '^FAIL' ".data/drills/$run.verify" | grep -qv '^FAIL C4'; then
+      verified=1
+    fi
+    spread=1
+    grep -q '^FAIL C4' ".data/drills/$run.verify" && spread=0
     t=$(kv time_to_resume_s <<< "$out") lost=$(kv steps_lost <<< "$out")
     restarts=$(kv restart_count <<< "$out") per_epoch=$(kv steps_per_epoch <<< "$out")
     csv_row D2_time_to_resume_s "$config" "$rep" "${t:-NA}" s "$run"
     csv_row D2_steps_lost "$config" "$rep" "${lost:-NA}" steps "$run"
     csv_row D2_restart_count "$config" "$rep" "${restarts:-NA}" restarts "$run"
+    csv_row D2_workers_on_two_nodes "$config" "$rep" "$spread" bool "$run"
     if (( rc == 0 && verified && ${restarts:-0} >= 1 )) && [[ -n "$t" ]] && (( ${lost:-1000000} <= ${per_epoch:-0} )); then
       csv_row D2_outcome "$config" "$rep" pass outcome "$run"
     else

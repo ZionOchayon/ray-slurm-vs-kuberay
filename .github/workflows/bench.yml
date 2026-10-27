@@ -3,10 +3,11 @@ name: bench
 # `make bench` on one GitHub-hosted runner, both schedulers one after the other (SPEC FR-28).
 # Manual only: it takes hours. The results are uploaded as an artifact and committed by hand, so every
 # number in the README comes from this script on a stated host. Pushing a branch named bench-run/* runs
-# it with the defaults; bench-smoke/* runs one rep of everything (a check of the scripts, not results).
+# it with the defaults; bench-smoke/* runs one rep of everything (a check of the scripts, not results);
+# bench-only/<step>[+<step>...] runs only those steps (BENCH_STEPS) on both schedulers.
 on:
   push:
-    branches: ["bench-run/**", "bench-smoke/**"]
+    branches: ["bench-run/**", "bench-smoke/**", "bench-only/**"]
   workflow_dispatch:
     inputs:
       reps:
@@ -45,7 +46,12 @@ jobs:
       - name: Bench
         env:
           SMOKE: ${{ startsWith(github.ref_name, 'bench-smoke/') }}
+          REF: ${{ github.ref_name }}
         run: |
+          if [[ $REF == bench-only/* ]]; then
+            export BENCH_STEPS="${REF#bench-only/}"
+            export BENCH_STEPS="${BENCH_STEPS//+/ }"
+          fi
           if [[ $SMOKE == true ]]; then
             make bench REPS=1 REPS_M1=1 REPS_M2=1
           else
