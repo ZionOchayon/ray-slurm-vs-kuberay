@@ -29,14 +29,21 @@ def last(events, event, before=float("inf")):
 
 
 def cmd_resume(events, a) -> int:
-    """M3 / D2: recovery after an injection at --since (a timestamp from the same clock)."""
+    """M3 / D2: recovery after an injection at --since (a timestamp from the same clock).
+
+    time_to_resume_s: first first_step after the restore minus the injection time.
+    steps_lost: last global_step logged before the restore minus the restored global_step.
+    expected_epoch: the last epoch_end before the restore, i.e. the newest checkpoint.
+    """
     restored = first(events, "restored", after=a.since)
     if restored is None:
         print("error=no restored event after the injection")
         return 1
     resumed = first(events, "first_step", after=restored["ts"])
-    ckpt = last(events, "epoch_end", before=a.since)
-    progress = last(events, "progress", before=a.since)
+    # Work done before the restore, not before the injection: a pod being deleted keeps training
+    # through its termination grace period, and those steps count as done (then lost, or kept).
+    ckpt = last(events, "epoch_end", before=restored["ts"])
+    progress = last(events, "progress", before=restored["ts"])
     lost_from = max(e["global_step"] for e in (ckpt, progress) if e) if (ckpt or progress) else 0
     print(f"restored_epoch={restored['epoch']}")
     print(f"expected_epoch={ckpt['epoch'] if ckpt else 'none'}")
