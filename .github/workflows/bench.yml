@@ -1,0 +1,61 @@
+name: bench
+
+# `make bench` on one GitHub-hosted runner, both schedulers one after the other (SPEC FR-28).
+# Manual only: it takes hours. The results are uploaded as an artifact and committed by hand, so every
+# number in the README comes from this script on a stated host.
+on:
+  workflow_dispatch:
+    inputs:
+      reps:
+        description: "REPS for each drill configuration"
+        default: "3"
+      reps_m1:
+        description: "REPS_M1"
+        default: "5"
+      reps_m2:
+        description: "REPS_M2"
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    env:
+      # 1 head + 1 worker + the submitter must fit next to the control plane on a small runner;
+      # limits and num-cpus stay at 2 (docs/NOTES.md).
+      K8S_CPU_REQUEST: 200m
+      BENCH_PRUNE: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Install kind, kubectl, helm (pinned, sha256-checked)
+        run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
+
+      - name: Bench
+        run: make bench REPS=${{ inputs.reps }} REPS_M1=${{ inputs.reps_m1 }} REPS_M2=${{ inputs.reps_m2 }}
+
+      - name: Collect
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -r docs/results README.md artifacts/ 2>/dev/null || true
+          cp -r .data/drills .data/bench artifacts/ 2>/dev/null || true
+          cp -r .data/k8s/logs artifacts/k8s-logs 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: bench-results
+          path: artifacts
+
+      - name: Down
+        if: always()
+        run: make down
