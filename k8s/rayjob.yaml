@@ -13,6 +13,22 @@ spec:
   backoffLimit: __BACKOFF_LIMIT__
   shutdownAfterJobFinishes: true
   ttlSecondsAfterFinished: 0
+  # The submitter pod only runs `ray job submit` (KubeRay fills in the command); KubeRay's default
+  # requests 500m CPU, which does not fit next to the Ray pods on a 2-vCPU runner.
+  submitterPodTemplate:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: ray-job-submitter
+          image: rayk8s:__RAY_VERSION__
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
   rayClusterSpec:
     rayVersion: "__RAY_VERSION__"
     headGroupSpec:
