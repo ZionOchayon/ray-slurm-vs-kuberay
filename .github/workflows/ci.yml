@@ -26,7 +26,7 @@ jobs:
       # bash -e ignores the status of a negated command, so negative checks use explicit `if`.
       - name: "Hygiene: pins"
         run: |
-          if grep -nE ':latest\b|@latest\b' versions.env slurm/Dockerfile slurm/docker-compose.yml .github/workflows/*.yml; then exit 1; fi
+          if grep -nE '[:@]latest\b' versions.env slurm/Dockerfile slurm/docker-compose.yml .github/workflows/*.yml; then exit 1; fi
           test "$(grep -c '@sha256:' versions.env)" -ge 2
 
       - name: "Hygiene: line endings"
