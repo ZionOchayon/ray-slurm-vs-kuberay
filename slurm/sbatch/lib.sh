@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared by ray-manual.sbatch and ray-requeue.sbatch (sourced from the read-only repo mount).
 # Sets head_node, head_ip and the train.py command line in train_cmd.
 : "${RUN:?}" "${EPOCHS:?}" "${WORKERS:?}" "${DATA:?}" "${SAMPLES:?}"
