@@ -103,7 +103,7 @@ def main() -> int:
     results.append(
         (
             "C4 2 workers on 2 distinct nodes",
-            (len(set(ips)) == 2) if two_workers else True,
+            (len(set(ips)) == 2) if two_workers else bool(run_json),
             f"workers={run_json.get('workers')} worker_node_ips={ips}",
         )
     )
