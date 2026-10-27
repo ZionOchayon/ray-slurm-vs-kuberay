@@ -1,0 +1,16 @@
+metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
+D2_time_to_resume_s,k8s,head-pod-delete,1,76.663,s,d2-k8s-230604-1,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:10:12Z
+D2_steps_lost,k8s,head-pod-delete,1,175,steps,d2-k8s-230604-1,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:10:12Z
+D2_restart_count,k8s,head-pod-delete,1,1,restarts,d2-k8s-230604-1,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:10:12Z
+D2_workers_on_two_nodes,k8s,head-pod-delete,1,0,bool,d2-k8s-230604-1,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:10:12Z
+D2_outcome,k8s,head-pod-delete,1,pass,outcome,d2-k8s-230604-1,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:10:12Z
+D2_time_to_resume_s,k8s,head-pod-delete,2,74.634,s,d2-k8s-231012-2,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:14:15Z
+D2_steps_lost,k8s,head-pod-delete,2,125,steps,d2-k8s-231012-2,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:14:15Z
+D2_restart_count,k8s,head-pod-delete,2,1,restarts,d2-k8s-231012-2,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:14:15Z
+D2_workers_on_two_nodes,k8s,head-pod-delete,2,0,bool,d2-k8s-231012-2,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:14:15Z
+D2_outcome,k8s,head-pod-delete,2,pass,outcome,d2-k8s-231012-2,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:14:15Z
+D2_time_to_resume_s,k8s,head-pod-delete,3,74.396,s,d2-k8s-231415-3,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:18:15Z
+D2_steps_lost,k8s,head-pod-delete,3,175,steps,d2-k8s-231415-3,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:18:15Z
+D2_restart_count,k8s,head-pod-delete,3,1,restarts,d2-k8s-231415-3,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:18:15Z
+D2_workers_on_two_nodes,k8s,head-pod-delete,3,0,bool,d2-k8s-231415-3,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:18:15Z
+D2_outcome,k8s,head-pod-delete,3,pass,outcome,d2-k8s-231415-3,d42f927,AMD EPYC 7763 64-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T23:18:15Z
