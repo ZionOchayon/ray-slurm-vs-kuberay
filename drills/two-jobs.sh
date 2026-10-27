@@ -63,7 +63,11 @@ for config in "${configs[@]}"; do
       ok[$i]=$v
       csv_row D3_job_exit "$config" "$rep.$i" "${rc[$i]}" code "$run"
       csv_row D3_job_verified "$config" "$rep.$i" "$v" bool "$run"
-      csv_row D3_job_message "$config" "$rep.$i" "$(job_message "$run")" text "$run"
+      # Only failed runs get a message: a successful symmetric-run job also logs "Failed to start Ray"
+      # when its worker's blocking `ray start` ends at shutdown.
+      msg=-
+      (( v )) || msg=$(job_message "$run")
+      csv_row D3_job_message "$config" "$rep.$i" "$msg" text "$run"
     done
     # Overlap from the events: did job 2's driver start before job 1's run ended (or vice versa)?
     s1=$(analyze span "$base-1" || true) s2=$(analyze span "$base-2" || true)
