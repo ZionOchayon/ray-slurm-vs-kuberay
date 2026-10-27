@@ -7,7 +7,7 @@ set -a; source versions.env; set +a
 for image in "rayslurm-node:$RAY_VERSION-$SLURM_VERSION" "rayk8s:$RAY_VERSION"; do
   if docker image inspect "$image" >/dev/null 2>&1; then
     # As root (the Ray image's Python is not readable by other UIDs), then hand the files back.
-    exec docker run --rm -v "$PWD:/work" -w /work -e OWNER="$(id -u):$(id -g)" --entrypoint bash "$image" -c \
+    exec docker run --rm --user 0 -v "$PWD:/work" -w /work -e OWNER="$(id -u):$(id -g)" --entrypoint bash "$image" -c \
       'python3 bench/summarize.py "$@"; rc=$?; chown -R "$OWNER" docs/results README.md; exit $rc' _ "$@"
   fi
 done
