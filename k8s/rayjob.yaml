@@ -1,0 +1,59 @@
+# The KubeRay counterpart of `sbatch ray-symmetric.sbatch`: 1 head pod and 1 worker pod, num-cpus 2 each,
+# the same train.py command line, /data from the kind node (hostPath) as storage_path's root.
+# scripts/train-k8s.sh fills in the __PLACEHOLDERS__ and applies it.
+apiVersion: ray.io/v1
+kind: RayJob
+metadata:
+  name: __RUN__
+spec:
+  entrypoint: >-
+    python -u /opt/rayslurm/train/train.py --run-name __RUN__ --epochs __EPOCHS__
+    --workers __WORKERS__ --data __DATA__ --synthetic-samples __SAMPLES__
+  # Retries on failure with a new RayCluster (drill D2 sets 1); RUN stays the same, so it resumes.
+  backoffLimit: __BACKOFF_LIMIT__
+  shutdownAfterJobFinishes: true
+  ttlSecondsAfterFinished: 0
+  rayClusterSpec:
+    rayVersion: "__RAY_VERSION__"
+    headGroupSpec:
+      rayStartParams:
+        num-cpus: "2"
+        num-gpus: "0"
+      template: &pod
+        spec:
+          # Jobs run as root on both sides (SPEC §2); the image's default user cannot write the hostPath.
+          securityContext:
+            runAsUser: 0
+          containers:
+            - name: ray
+              image: rayk8s:__RAY_VERSION__
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: RAY_TRAIN_V2_ENABLED
+                  value: "1"
+                - name: RAYJOB_NAME
+                  value: __RUN__
+              resources:
+                requests:
+                  cpu: "__CPU_REQUEST__"
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+          volumes:
+            - name: data
+              hostPath:
+                path: /data
+                type: Directory
+    workerGroupSpecs:
+      - groupName: workers
+        replicas: 1
+        minReplicas: 1
+        maxReplicas: 1
+        rayStartParams:
+          num-cpus: "2"
+          num-gpus: "0"
+        template: *pod
