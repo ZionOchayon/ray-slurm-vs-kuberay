@@ -12,6 +12,9 @@ source drills/lib.sh
 : "${REPS:?}"
 
 if [[ $SCHED == slurm ]]; then configs=(usr1-trap admin-requeue); else configs=(head-pod-delete); fi
+# Long enough that work remains after the pod's 30 s termination grace period: with 4 epochs the head
+# pod finished the run while terminating (docs/NOTES.md). Same length on both schedulers.
+DRILL_EPOCHS=${DRILL_EPOCHS:-10}
 csv_open drill-preempt
 k8s_setup
 failed=0

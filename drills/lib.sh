@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared helpers for drills/*.sh and bench/*.sh (sourced). Host side is bash only; anything that
 # parses events runs drills/analyze.py inside a container that sees the run's /data.
 # Every timestamp comes from inside the Docker VM (slurmctld or the kind node), never the host clock.
