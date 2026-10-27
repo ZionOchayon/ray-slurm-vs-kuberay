@@ -15,6 +15,7 @@ TIMEOUT ?= 1200
 K8S_TIMEOUT ?= 1200
 LAUNCHER ?= symmetric
 EXCLUSIVE ?= 0
+MEM_PER_NODE ?= 2G
 SCHED ?= slurm
 REPS ?= 3
 REPS_M1 ?= 5
@@ -32,7 +33,7 @@ up:
 
 train-slurm:
 	@RUN="$(RUN)" EPOCHS="$(EPOCHS)" WORKERS="$(WORKERS)" DATA="$(DATA)" SAMPLES="$(SAMPLES)" TIMEOUT="$(TIMEOUT)" \
-		LAUNCHER="$(LAUNCHER)" EXCLUSIVE="$(EXCLUSIVE)" bash scripts/train-slurm.sh
+		LAUNCHER="$(LAUNCHER)" EXCLUSIVE="$(EXCLUSIVE)" MEM_PER_NODE="$(MEM_PER_NODE)" bash scripts/train-slurm.sh
 
 train-k8s:
 	@RUN="$(RUN)" EPOCHS="$(EPOCHS)" WORKERS="$(WORKERS)" DATA="$(DATA)" SAMPLES="$(SAMPLES)" \
