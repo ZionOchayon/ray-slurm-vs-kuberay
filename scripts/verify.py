@@ -1,10 +1,12 @@
-"""Check a Slurm training run from its artifacts, not only from its job state.
+"""Check a training run from its artifacts, not only from its job state.
 
-Runs inside the slurmctld container (`make verify`). Checks C1-C5 from docs/SPEC.md FR-08.
+Runs inside the slurmctld container (`make verify`), or with --no-slurm inside the K8s image
+(`make verify SCHED=k8s`). Checks C1-C6 from docs/SPEC.md FR-08.
 Exit: 0 all checks pass, 1 any check fails, 2 invalid arguments.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -31,21 +33,46 @@ def sacct_state(job_id: str, wait_s: int = 30) -> str:
         time.sleep(2)
 
 
+def check_launcher_log(launcher: str, text: str, log: Path) -> tuple[str, bool, str]:
+    """C5: the job script really started Ray the way its launcher says."""
+    heads, workers = text.count("On head node."), text.count("On worker node.")
+    if launcher == "manual":
+        n = text.count("ray-manual port map:")
+        return ("C5 manual launcher port map", n == 1, f"port_map_lines={n} log={log}")
+    if launcher == "requeue":
+        # The requeue script appends to its log, so every attempt adds one head and one worker line.
+        ok = heads >= 1 and heads == workers
+        return ("C5 requeue head + worker per attempt", ok, f"head={heads} worker={workers} log={log}")
+    ok = heads == 1 and workers == 1
+    return ("C5 symmetric-run head + worker", ok, f"head={heads} worker={workers} log={log}")
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--run", required=True)
-    p.add_argument("--job-id", required=True)
+    p.add_argument("--job-id", help="Slurm job ID (required unless --no-slurm)")
     p.add_argument("--storage", default="/data/ray_results")
     p.add_argument("--log-dir", default="/data/logs")
+    p.add_argument("--launcher", choices=["symmetric", "manual", "requeue"], default="symmetric")
+    p.add_argument("--train-py", default="/opt/rayslurm/train/train.py", help="file C6 hashes")
+    p.add_argument("--no-slurm", action="store_true", help="K8s run: no sacct, no Slurm job log")
+    p.add_argument("--job-state", default="", help="with --no-slurm: final RayJob jobStatus")
     a = p.parse_args()
-    if not RUN_RE.fullmatch(a.run) or not a.job_id.isdigit():
-        p.error("--run must match the RUN pattern and --job-id must be numeric")
+    if not RUN_RE.fullmatch(a.run):
+        p.error("--run must match the RUN pattern")
+    if not a.no_slurm and not (a.job_id or "").isdigit():
+        p.error("--job-id must be numeric (or pass --no-slurm)")
 
     run_dir = Path(a.storage) / a.run
     results: list[tuple[str, bool, str]] = []
 
-    state = sacct_state(a.job_id)
-    results.append(("C1 job COMPLETED, exit 0:0", state == "COMPLETED|0:0", state))
+    if a.no_slurm:
+        results.append(
+            ("C1 RayJob SUCCEEDED", a.job_state == "SUCCEEDED", f"jobStatus={a.job_state or '?'}")
+        )
+    else:
+        state = sacct_state(a.job_id)
+        results.append(("C1 job COMPLETED, exit 0:0", state == "COMPLETED|0:0", state))
 
     run_json = {}
     try:
@@ -59,13 +86,15 @@ def main() -> int:
         )
 
     epochs = run_json.get("epochs")
-    ckpts = sorted(run_dir.glob("checkpoint_epoch_*"))
-    missing = [c.name for c in ckpts if not (c / "model.pt").is_file()]
+    ckpts = sorted(c.name for c in run_dir.glob("checkpoint_epoch_*"))
+    missing = [c for c in ckpts if not (run_dir / c / "model.pt").is_file()]
+    # Contiguous: exactly checkpoint_epoch_000 .. epochs-1, so a resumed run has no gaps.
+    expected = [f"checkpoint_epoch_{i:03d}" for i in range(epochs or 0)]
     results.append(
         (
             "C3 one checkpoint per epoch",
-            epochs is not None and len(ckpts) == epochs and not missing,
-            f"expected={epochs} found={[c.name for c in ckpts]} missing_model_pt={missing}",
+            epochs is not None and ckpts == expected and not missing,
+            f"expected={epochs} found={ckpts} missing_model_pt={missing}",
         )
     )
 
@@ -79,19 +108,25 @@ def main() -> int:
         )
     )
 
-    log = Path(a.log_dir) / f"{a.run}-{a.job_id}.out"
-    try:
-        text = log.read_text(errors="replace")
-    except OSError as e:
-        results.append(("C5 symmetric-run head + worker", False, str(e)))
+    if a.no_slurm:
+        results.append(("C5 launcher log", True, "n/a on K8s (KubeRay starts Ray, not a job script)"))
     else:
-        heads, workers = text.count("On head node."), text.count("On worker node.")
+        log = Path(a.log_dir) / f"{a.run}-{a.job_id}.out"
+        try:
+            text = log.read_text(errors="replace")
+        except OSError as e:
+            results.append((f"C5 {a.launcher} launcher log", False, str(e)))
+        else:
+            results.append(check_launcher_log(a.launcher, text, log))
+
+    try:
+        want = hashlib.sha256(Path(a.train_py).read_bytes()).hexdigest()
+    except OSError as e:
+        results.append(("C6 same train.py bytes", False, str(e)))
+    else:
+        got = run_json.get("train_py_sha256")
         results.append(
-            (
-                "C5 symmetric-run head + worker",
-                heads == 1 and workers == 1,
-                f"head={heads} worker={workers} log={log}",
-            )
+            ("C6 same train.py bytes", got == want, f"run={got} file={want} ({a.train_py})")
         )
 
     for name, ok, detail in results:
