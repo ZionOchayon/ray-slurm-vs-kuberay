@@ -809,6 +809,19 @@ All three were answered on 2026-10-24:
 
 v0.2/v0.3 UNVERIFIED items stay marked and are re-checked at the start of v0.2 (Fri 30 Oct): KubeRay with Kubernetes 1.37, RayJob `backoffLimit`, Helm 4, Slinky 1.2.0.
 
+### v0.2 build deviations (2026-10-27)
+
+Decided while building v0.2; the reasons and observations are in `docs/NOTES.md`.
+
+- **K8s CPU requests:** `K8S_CPU_REQUEST` (default 2, as FR-22 states) sets the Ray pods' CPU request; CI and the bench workflow use 200m because 2 + 2 CPUs cannot be scheduled on a 2-vCPU runner. Limits and `num-cpus` stay at 2. The submitter pod requests 100m. Memory: request 1Gi, limit 4Gi.
+- **`MEM_PER_NODE`** (default 2G) is passed as `sbatch --mem`. Upstream's `CR_Core_Memory` without a default memory gives every job all of each node's memory, so without it no two jobs could ever share nodes and D3 (a) and (c) would be indistinguishable from (b).
+- **Compute nodes start through `slurm/worker-entrypoint.sh`**, which waits for every replica's DNS name before the upstream entrypoint (a start-up race seen in CI).
+- **Drills inject after Ray Train has registered the checkpoint** (`checkpoint_manager_snapshot.json`), not after `model.pt` appears on disk. D2 runs 10 epochs, so work remains after a pod's 30 s termination grace period.
+- **M1 breakdown:** submit → `driver_start` and `driver_start` → `first_step` on both schedulers, instead of the per-scheduler breakdown in §10.
+- **Bench host:** `make bench` runs on one GitHub-hosted runner (the `bench` workflow), not on R2, because both stacks must run on the same host and kind could not run on the development machine. The host profile is in every raw row.
+- **FR-30 arm64:** the arm64 Slurm entry runs only once the repo is public, where `ubuntu-24.04-arm` is free.
+- **FR-31:** both images install from one `train/requirements.lock` (uv, `--generate-hashes`, all artifacts per pinned version).
+
 ## 17. Traceability (MUST → proof)
 
 | Requirement    | Proven by                                                                                                       |
