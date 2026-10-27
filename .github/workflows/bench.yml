@@ -2,8 +2,11 @@ name: bench
 
 # `make bench` on one GitHub-hosted runner, both schedulers one after the other (SPEC FR-28).
 # Manual only: it takes hours. The results are uploaded as an artifact and committed by hand, so every
-# number in the README comes from this script on a stated host.
+# number in the README comes from this script on a stated host. Pushing a branch named bench-run/* runs
+# it with the defaults; bench-smoke/* runs one rep of everything (a check of the scripts, not results).
 on:
+  push:
+    branches: ["bench-run/**", "bench-smoke/**"]
   workflow_dispatch:
     inputs:
       reps:
@@ -40,7 +43,14 @@ jobs:
         run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
 
       - name: Bench
-        run: make bench REPS=${{ inputs.reps }} REPS_M1=${{ inputs.reps_m1 }} REPS_M2=${{ inputs.reps_m2 }}
+        env:
+          SMOKE: ${{ startsWith(github.ref_name, 'bench-smoke/') }}
+        run: |
+          if [[ $SMOKE == true ]]; then
+            make bench REPS=1 REPS_M1=1 REPS_M2=1
+          else
+            make bench REPS=${{ inputs.reps || '3' }} REPS_M1=${{ inputs.reps_m1 || '5' }} REPS_M2=${{ inputs.reps_m2 || '3' }}
+          fi
 
       - name: Collect
         if: always()
