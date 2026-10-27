@@ -10,16 +10,20 @@ for v in EPOCHS WORKERS SAMPLES TIMEOUT; do
 done
 # DATA is only shape-checked (it goes into --export); train.py decides whether the value is valid.
 [[ "${DATA:-}" =~ ^[a-z0-9-]+$ ]] || { echo "train-slurm: invalid DATA '${DATA:-}'" >&2; exit 2; }
-LAUNCHER=${LAUNCHER:-symmetric} EXCLUSIVE=${EXCLUSIVE:-0}
+LAUNCHER=${LAUNCHER:-symmetric} EXCLUSIVE=${EXCLUSIVE:-0} MEM_PER_NODE=${MEM_PER_NODE:-2G}
 [[ "$LAUNCHER" =~ ^(symmetric|manual|requeue)$ ]] || { echo "train-slurm: LAUNCHER must be symmetric, manual or requeue" >&2; exit 2; }
 [[ "$EXCLUSIVE" =~ ^[01]$ ]] || { echo "train-slurm: EXCLUSIVE must be 0 or 1" >&2; exit 2; }
-extra=()
+[[ "$MEM_PER_NODE" =~ ^[1-9][0-9]*[MG]$ ]] || { echo "train-slurm: MEM_PER_NODE must look like 2G or 512M" >&2; exit 2; }
+# Upstream's slurm.conf uses CR_Core_Memory with no default, so a job without --mem is given all of
+# each node's memory and no second job can ever share the nodes (docs/NOTES.md 2026-10-27). Memory is
+# not enforced (ConstrainRAMSpace=no); --mem only lets the scheduler pack jobs.
+extra=(--mem="$MEM_PER_NODE")
 (( EXCLUSIVE )) && extra+=(--exclusive)
 
 docker exec slurmctld sinfo >/dev/null 2>&1 || { echo "cluster not up: run make up" >&2; exit 1; }
 
 echo "train-slurm: RUN=$RUN EPOCHS=$EPOCHS WORKERS=$WORKERS DATA=$DATA SAMPLES=$SAMPLES" \
-  "LAUNCHER=$LAUNCHER EXCLUSIVE=$EXCLUSIVE TIMEOUT=${TIMEOUT}s"
+  "LAUNCHER=$LAUNCHER EXCLUSIVE=$EXCLUSIVE MEM_PER_NODE=$MEM_PER_NODE TIMEOUT=${TIMEOUT}s"
 mkdir -p .runs
 echo "$LAUNCHER" > ".runs/$RUN.launcher"
 rc=0
