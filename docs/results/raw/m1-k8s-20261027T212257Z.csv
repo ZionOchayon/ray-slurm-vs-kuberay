@@ -1,0 +1,16 @@
+metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
+M1_submit_to_first_step_s,k8s,warm,1,43.532,s,m1-k8s-212843-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:29:42Z
+M1_submit_to_driver_start_s,k8s,warm,1,31.699,s,m1-k8s-212843-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:29:42Z
+M1_driver_start_to_first_step_s,k8s,warm,1,11.832,s,m1-k8s-212843-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:29:42Z
+M1_submit_to_first_step_s,k8s,warm,2,38.116,s,m1-k8s-212942-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:30:35Z
+M1_submit_to_driver_start_s,k8s,warm,2,26.657,s,m1-k8s-212942-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:30:35Z
+M1_driver_start_to_first_step_s,k8s,warm,2,11.458,s,m1-k8s-212942-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:30:35Z
+M1_submit_to_first_step_s,k8s,warm,3,38.596,s,m1-k8s-213035-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:31:27Z
+M1_submit_to_driver_start_s,k8s,warm,3,27.353,s,m1-k8s-213035-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:31:27Z
+M1_driver_start_to_first_step_s,k8s,warm,3,11.243,s,m1-k8s-213035-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:31:27Z
+M1_submit_to_first_step_s,k8s,warm,4,39.501,s,m1-k8s-213127-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:32:19Z
+M1_submit_to_driver_start_s,k8s,warm,4,27.686,s,m1-k8s-213127-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:32:19Z
+M1_driver_start_to_first_step_s,k8s,warm,4,11.815,s,m1-k8s-213127-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:32:19Z
+M1_submit_to_first_step_s,k8s,warm,5,39.091,s,m1-k8s-213219-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:33:12Z
+M1_submit_to_driver_start_s,k8s,warm,5,27.454,s,m1-k8s-213219-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:33:12Z
+M1_driver_start_to_first_step_s,k8s,warm,5,11.637,s,m1-k8s-213219-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T21:33:12Z

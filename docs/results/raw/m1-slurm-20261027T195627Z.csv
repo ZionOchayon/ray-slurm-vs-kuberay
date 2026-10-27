@@ -1,0 +1,16 @@
+metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
+M1_submit_to_first_step_s,slurm,warm,1,24.226,s,m1-slurm-195627-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:58:13Z
+M1_submit_to_driver_start_s,slurm,warm,1,12.854,s,m1-slurm-195627-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:58:13Z
+M1_driver_start_to_first_step_s,slurm,warm,1,11.372,s,m1-slurm-195627-1,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:58:13Z
+M1_submit_to_first_step_s,slurm,warm,2,23.448,s,m1-slurm-195813-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:59:59Z
+M1_submit_to_driver_start_s,slurm,warm,2,12.793,s,m1-slurm-195813-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:59:59Z
+M1_driver_start_to_first_step_s,slurm,warm,2,10.655,s,m1-slurm-195813-2,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T19:59:59Z
+M1_submit_to_first_step_s,slurm,warm,3,24.678,s,m1-slurm-195959-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:01:46Z
+M1_submit_to_driver_start_s,slurm,warm,3,13.584,s,m1-slurm-195959-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:01:46Z
+M1_driver_start_to_first_step_s,slurm,warm,3,11.094,s,m1-slurm-195959-3,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:01:46Z
+M1_submit_to_first_step_s,slurm,warm,4,23.779,s,m1-slurm-200146-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:03:32Z
+M1_submit_to_driver_start_s,slurm,warm,4,13.353,s,m1-slurm-200146-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:03:32Z
+M1_driver_start_to_first_step_s,slurm,warm,4,10.427,s,m1-slurm-200146-4,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:03:32Z
+M1_submit_to_first_step_s,slurm,warm,5,22.688,s,m1-slurm-200332-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:05:18Z
+M1_submit_to_driver_start_s,slurm,warm,5,11.939,s,m1-slurm-200332-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:05:18Z
+M1_driver_start_to_first_step_s,slurm,warm,5,10.749,s,m1-slurm-200332-5,c58368e,AMD EPYC 9V45 96-Core Processor; 2 cpu; 7 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-27T20:05:18Z
