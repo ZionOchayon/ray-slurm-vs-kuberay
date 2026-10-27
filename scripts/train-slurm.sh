@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `make train-slurm`: submit slurm/sbatch/ray-symmetric.sbatch, block until the job ends, report.
+# `make train-slurm`: submit slurm/sbatch/ray-<LAUNCHER>.sbatch, block until the job ends, report.
 # Exit: 0 job COMPLETED, 1 any other final state, 2 invalid input, 124 timeout (job cancelled).
 set -euo pipefail
 
@@ -10,14 +10,24 @@ for v in EPOCHS WORKERS SAMPLES TIMEOUT; do
 done
 # DATA is only shape-checked (it goes into --export); train.py decides whether the value is valid.
 [[ "${DATA:-}" =~ ^[a-z0-9-]+$ ]] || { echo "train-slurm: invalid DATA '${DATA:-}'" >&2; exit 2; }
+LAUNCHER=${LAUNCHER:-symmetric} EXCLUSIVE=${EXCLUSIVE:-0}
+[[ "$LAUNCHER" =~ ^(symmetric|manual|requeue)$ ]] || { echo "train-slurm: LAUNCHER must be symmetric, manual or requeue" >&2; exit 2; }
+[[ "$EXCLUSIVE" =~ ^[01]$ ]] || { echo "train-slurm: EXCLUSIVE must be 0 or 1" >&2; exit 2; }
+extra=()
+(( EXCLUSIVE )) && extra+=(--exclusive)
 
 docker exec slurmctld sinfo >/dev/null 2>&1 || { echo "cluster not up: run make up" >&2; exit 1; }
 
-echo "train-slurm: RUN=$RUN EPOCHS=$EPOCHS WORKERS=$WORKERS DATA=$DATA SAMPLES=$SAMPLES TIMEOUT=${TIMEOUT}s"
+echo "train-slurm: RUN=$RUN EPOCHS=$EPOCHS WORKERS=$WORKERS DATA=$DATA SAMPLES=$SAMPLES" \
+  "LAUNCHER=$LAUNCHER EXCLUSIVE=$EXCLUSIVE TIMEOUT=${TIMEOUT}s"
+mkdir -p .runs
+echo "$LAUNCHER" > ".runs/$RUN.launcher"
 rc=0
-timeout "$TIMEOUT" docker exec slurmctld sbatch --parsable --wait --job-name="$RUN" \
+# The submit timestamp (M1) is taken in slurmctld right before sbatch, on the clock the job uses.
+timeout "$TIMEOUT" docker exec slurmctld bash -c 'date +%s.%N >> "/data/logs/$1.submit_ts"; shift; exec sbatch "$@"' _ \
+  "$RUN" --parsable --wait --job-name="$RUN" "${extra[@]}" \
   --export="ALL,RUN=$RUN,EPOCHS=$EPOCHS,WORKERS=$WORKERS,DATA=$DATA,SAMPLES=$SAMPLES" \
-  /opt/rayslurm/slurm/sbatch/ray-symmetric.sbatch || rc=$?
+  "/opt/rayslurm/slurm/sbatch/ray-$LAUNCHER.sbatch" || rc=$?
 if (( rc == 124 )); then
   docker exec slurmctld scancel --name="$RUN" || true
 fi
@@ -37,7 +47,6 @@ if [[ -z "$jobid" ]]; then
   exit 1
 fi
 
-mkdir -p .runs
 echo "$jobid" > ".runs/$RUN.jobid"
 echo "$RUN" > .runs/latest
 log="/data/logs/$RUN-$jobid.out"
