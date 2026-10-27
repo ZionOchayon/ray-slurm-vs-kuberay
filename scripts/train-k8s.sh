@@ -86,6 +86,10 @@ echo "rayjob $RUN  jobStatus=${status:-?} jobDeploymentStatus=${deploy:-?} waite
 echo "log: $log (last 40 lines)"
 tail -n 40 "$log" || true
 
+if [[ ! "$deploy" =~ ^(Complete|Failed)$ || "$status" != SUCCEEDED ]]; then
+  k get pods -o wide || true
+  k get events --sort-by=.lastTimestamp | tail -n 20 || true
+fi
 if [[ ! "$deploy" =~ ^(Complete|Failed)$ ]]; then
   k delete rayjob "$RUN" --ignore-not-found --wait=false || true
   echo "train-k8s: timed out after ${K8S_TIMEOUT}s; RayJob deleted" >&2
