@@ -55,7 +55,9 @@ spec:
                   memory: 1Gi
                 limits:
                   cpu: "2"
-                  memory: 2Gi
+                  # The head pod also runs the GCS, dashboard, driver and Train controller; at 2Gi Ray's
+                  # memory monitor killed the Train workers (1.90/2.00 GB in CI).
+                  memory: 4Gi
               volumeMounts:
                 - name: data
                   mountPath: /data
