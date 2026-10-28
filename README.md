@@ -3,9 +3,9 @@
 [![ci](https://github.com/ZionOchayon/ray-slurm-vs-kuberay/actions/workflows/ci.yml/badge.svg)](https://github.com/ZionOchayon/ray-slurm-vs-kuberay/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**One PyTorch training job, two schedulers: Ray on Slurm and Ray on Kubernetes (KubeRay), side by side, with a one-command local cluster, failure drills and measured trade-offs.**
+**One PyTorch training job, three ways to schedule it: Ray on Slurm, Ray on Kubernetes (KubeRay), and Ray on Slurm running inside Kubernetes (Slinky), side by side, with one-command local clusters, failure drills, measured trade-offs and a Grafana dashboard.**
 
-The same `train/train.py` (a Ray Train `TorchTrainer`, 2 CPU workers, a checkpoint every epoch) runs as a 2-node Slurm job and as a KubeRay RayJob on kind. `make verify` checks every run from its artifacts, and both runs record the sha256 of the `train.py` they ran.
+The same `train/train.py` (a Ray Train `TorchTrainer`, 2 CPU workers, a checkpoint every epoch) runs as a 2-node Slurm job in Docker Compose, as a KubeRay RayJob on kind, and as the same Slurm job on Slurm pods managed by SchedMD's slurm-operator in that kind cluster. `make verify` checks every run from its artifacts, and every run records the sha256 of the `train.py` it ran.
 
 ## Results
 
@@ -31,7 +31,7 @@ Host: `AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_6
 
 ## Quickstart
 
-You need Docker with Compose v2 or later, GNU make, bash and git. Docker needs at least 6 GiB of memory. The KubeRay side also needs [kind](https://kind.sigs.k8s.io/) v0.33.0, kubectl v1.37 and helm v3.22 (on Linux amd64, `sudo bash scripts/install-k8s-tools.sh` installs the pinned versions and checks their sha256).
+You need Docker with Compose v2 or later, GNU make, bash and git. Docker needs at least 6 GiB of memory. The KubeRay and Slinky sides also need [kind](https://kind.sigs.k8s.io/) v0.33.0, kubectl v1.37 and helm v3.22 (on Linux amd64, `sudo bash scripts/install-k8s-tools.sh` installs the pinned versions and checks their sha256).
 
 **Ray on Slurm**
 
@@ -49,9 +49,27 @@ make train-k8s           # create the kind cluster, install the KubeRay operator
 make verify SCHED=k8s    # the same checks on the K8s run
 ```
 
+**Slurm on Kubernetes (Slinky)**
+
+```bash
+make up-slinky              # in the kind cluster: slurm-operator, MariaDB, a Slurm cluster with 2 slurmd pods
+make train-slinky           # the same sbatch file as make train-slurm, submitted from the login pod
+make verify SCHED=slinky    # the same checks
+```
+
+**Prometheus and Grafana**
+
+```bash
+make metrics-up                  # Compose stack: Grafana on http://127.0.0.1:3000/d/rsk
+make metrics-up SCHED=k8s        # kind: KubeRay and Slinky; then port-forward svc/grafana (printed)
+make metrics-check SCHED=slurm   # Prometheus has Ray and Slurm samples, Grafana serves the dashboard
+```
+
+One dashboard (`observability/grafana/rsk-dashboard.json`) shows epoch time, steps and checkpoint restores per run, Ray nodes, and Slurm jobs and nodes by state, for whichever stack is running. It is for watching runs and drills; the numbers in the table come from `bench/`.
+
 A good run ends with `make verify` printing `PASS` for C1–C6, then `verify <run>: PASS`. Useful variables: `RUN`, `EPOCHS`, `WORKERS`, `DATA` (`synthetic` or `fashion-mnist`), `SAMPLES`, `LAUNCHER` (`symmetric`, `manual` or `requeue`), `EXCLUSIVE`; see [docs/SPEC.md §9](docs/SPEC.md). Running `make train-slurm EPOCHS=3 RUN=<run>` again on a finished run resumes it from its last checkpoint.
 
-**Tested hosts:** Linux (the GitHub Actions runner) for everything. The v0.1 Slurm side was also tested on Windows 11 through WSL2 (Ubuntu, Docker Desktop's WSL2 backend, repo cloned inside the WSL filesystem); the v0.2 additions have not been run there yet. **macOS: untested.**
+**Tested hosts:** Linux (the GitHub Actions runner) for everything; the Slurm side also on arm64 runners. The v0.1 Slurm side was also tested on Windows 11 through WSL2 (Ubuntu, Docker Desktop's WSL2 backend, repo cloned inside the WSL filesystem); the v0.2 and v0.3 additions have not been run there yet. **macOS: untested.**
 
 ## How it works
 
@@ -68,19 +86,27 @@ flowchart LR
     op --> sub["submitter pod<br/>ray job submit"]
     wk -->|"joins GCS"| head
   end
+  subgraph slinky["Slinky on the same kind node"]
+    sop["slurm-operator"] -->|"NodeSet cpu"| p1["slurmd pod cpu-0<br/>ray symmetric-run, head + driver"]
+    sop --> p2["slurmd pod cpu-1<br/>ray symmetric-run, worker"]
+    login["login pod<br/>sbatch"] --> p1
+    p2 -->|"joins GCS :6379"| p1
+  end
   s1 -.->|"/data/ray_results"| vol[("shared volume")]
   head -.->|"/data/ray_results"| hp[("hostPath on the kind node")]
+  p1 -.->|"/data/ray_results"| hp
 ```
 
 1. **Slurm:** `sbatch` gets 2 nodes. One `srun` task per node runs `ray symmetric-run`, which starts the Ray head on the first node and a Ray worker on the second, then runs `train.py` on the head only.
 2. **KubeRay:** a RayJob describes 1 head pod and 1 worker pod (`num-cpus: 2` each). The operator creates the RayCluster and a submitter pod that runs `ray job submit` against the head.
-3. On both, Ray Train places 2 workers with `SPREAD`, one per Ray node, and trains with DDP over gloo.
-4. Each epoch, rank 0 writes a checkpoint under `/data/ray_results/<run>/`: a volume shared by every Slurm container, or a hostPath on the single kind node. Ray Train needs shared storage for multi-node checkpoints.
-5. `make verify` reads the job state (`sacct` or the RayJob status), `run.json`, the checkpoints, the job log and the `train.py` hash. It does not trust the job state alone: `symmetric-run` can exit 0 when `ray start` fails, and in drill D3 Slurm reported `COMPLETED` for jobs that never trained (M4 (a) in the table above).
+3. **Slinky:** the slurm-operator runs slurmctld, slurmdbd and two slurmd pods in kind. The same sbatch file is submitted from the login pod, and `ray symmetric-run` treats the pods exactly like the Compose nodes.
+4. On all three, Ray Train places 2 workers with `SPREAD`, one per Ray node, and trains with DDP over gloo.
+5. Each epoch, rank 0 writes a checkpoint under `/data/ray_results/<run>/`: a volume shared by every Slurm container, or a hostPath on the single kind node. Ray Train needs shared storage for multi-node checkpoints.
+6. `make verify` reads the job state (`sacct` or the RayJob status), `run.json`, the checkpoints, the job log and the `train.py` hash. It does not trust the job state alone: `symmetric-run` can exit 0 when `ray start` fails, and in drill D3 Slurm reported `COMPLETED` for jobs that never trained (M4 (a) in the table above).
 
 ## Failure drills
 
-| Drill | Slurm | KubeRay | Pass criterion |
+| Drill | Slurm (Compose and Slinky) | KubeRay | Pass criterion |
 | --- | --- | --- | --- |
 | D1 kill one worker (`make drill-kill-worker SCHED=…`) | `pkill -9 -f RayTrainWorker` on the non-head node | the same in the worker pod | the job still succeeds, Ray Train restores the last checkpoint, checkpoints are contiguous |
 | D2 preemption (`make drill-preempt SCHED=…`) | `ray-requeue.sbatch`: USR1 → trap → `scontrol requeue`, and a direct `scontrol requeue` | delete the head pod of a RayJob with `backoffLimit: 1` | the run restarts, resumes from its last checkpoint and succeeds |
@@ -98,29 +124,32 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md): a short recommendati
 Makefile, versions.env      the single interface; every pinned version and digest
 train/train.py              the one workload (+ requirements.lock, hash-locked)
 slurm/                      node image, compose cluster, sbatch launchers (symmetric, manual, requeue)
-k8s/                        Ray image, kind config, RayJob template
-scripts/                    make up / train-slurm / train-k8s / verify
+k8s/                        Ray image, kind config, RayJob template, Slinky values, Prometheus/Grafana manifests
+slinky/                     the Slinky slurmd image (Ray venv)
+observability/              Prometheus configs and the Grafana dashboard
+scripts/                    make up / train-slurm / train-k8s / up-slinky / verify / metrics
 drills/, bench/             failure drills, M1/M2, summarize.py (results table)
 docs/                       SPEC.md, NOTES.md, when-to-use-which.md, results/
 ```
 
 ## Reproduce the numbers
 
-`make bench` runs M1 and M2 on both schedulers, then every drill on both, one scheduler at a time, and regenerates `docs/results/results.csv`, `docs/results/table.md` and the block above. The table above came from one run of the [`bench` workflow](.github/workflows/bench.yml) on a GitHub-hosted `ubuntu-24.04` runner (4 vCPU, 16 GB), with both schedulers on the same machine; the host profile and commit are in every raw CSV row. `bash bench/summarize.sh --check README.md` fails if this README's table differs from the raw data (it runs in CI).
+`make bench` runs M1 and M2 on all three schedulers, then every drill on each, one scheduler at a time, and regenerates `docs/results/results.csv`, `docs/results/table.md` and the block above. The table above came from one run of the [`bench` workflow](.github/workflows/bench.yml) on a GitHub-hosted `ubuntu-24.04` runner (4 vCPU, 16 GB), with all schedulers on the same machine; the host profile and commit are in every raw CSV row. `bash bench/summarize.sh --check README.md` fails if this README's table differs from the raw data (it runs in CI).
 
 ## Limits and non-goals
 
 - A lab, not a platform: no GPU, no cloud, no HA, no TLS, no multi-user auth. Jobs run as root in privileged containers. Do not run it on shared machines.
-- Both "nodes" share one machine's CPUs, memory and disk. The Slurm volume behaves like a shared directory, not like NFS or Lustre; the K8s side uses a hostPath on one kind node.
+- Both "nodes" share one machine's CPUs, memory and disk. The Slurm volume behaves like a shared directory, not like NFS or Lustre; the K8s side uses a hostPath on one kind node. Slinky's two slurmd pods share that one node (`oversubscribeNode: true`), which its chart warns against for real clusters.
 - The synthetic data has random labels; this tests the plumbing, not model quality. `DATA=fashion-mnist` trains on real data but is not tuned.
 
 ## Roadmap
 
 - **v0.2 (Oct 2026):** done: the KubeRay side, three failure drills on both schedulers, measured results and the guide.
-- **v0.3 (after 8 Nov 2026, optional):** Slinky (Slurm on Kubernetes), Prometheus and Grafana, an optional GPU run.
+- **v0.3 (Oct 2026):** done: Slinky (Slurm on Kubernetes) as a third column, Prometheus and Grafana for all three stacks.
+- **Later, optional:** one documented GPU run, outside CI and outside the table.
 
 Full plan and requirements: [docs/SPEC.md](docs/SPEC.md).
 
 ## Credits and license
 
-The Slurm cluster is derived from [giovtorres/slurm-docker-cluster](https://github.com/giovtorres/slurm-docker-cluster) (MIT); see [NOTICE](NOTICE). Built on [Ray](https://github.com/ray-project/ray), [KubeRay](https://github.com/ray-project/kuberay), [kind](https://github.com/kubernetes-sigs/kind) and [PyTorch](https://pytorch.org). Licensed under [Apache-2.0](LICENSE).
+The Slurm cluster is derived from [giovtorres/slurm-docker-cluster](https://github.com/giovtorres/slurm-docker-cluster) (MIT); see [NOTICE](NOTICE). Built on [Ray](https://github.com/ray-project/ray), [KubeRay](https://github.com/ray-project/kuberay), [Slinky](https://github.com/SlinkyProject/slurm-operator), [kind](https://github.com/kubernetes-sigs/kind), [Prometheus](https://prometheus.io), [Grafana](https://grafana.com) and [PyTorch](https://pytorch.org). Licensed under [Apache-2.0](LICENSE).
