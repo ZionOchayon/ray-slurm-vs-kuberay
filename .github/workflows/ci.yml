@@ -169,3 +169,50 @@ jobs:
       - name: Down
         if: always()
         run: make down
+
+  slinky:
+    # Slurm on Kubernetes (SPEC §18, FR-43): SchedMD's slurm-operator in kind, the same sbatch file.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Install kind, kubectl, helm (pinned, sha256-checked)
+        run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
+
+      - name: Up
+        run: make up-slinky
+
+      - name: Train
+        run: make train-slinky EPOCHS=2 RUN=ci-slinky-${{ github.run_id }}
+
+      - name: Verify
+        run: make verify SCHED=slinky RUN=ci-slinky-${{ github.run_id }}
+
+      - name: Collect logs
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          kubectl --context kind-rayk8s get all -A -o wide > artifacts/get-all.txt 2>&1 || true
+          kubectl --context kind-rayk8s -n slurm describe pods > artifacts/describe-slurm.txt 2>&1 || true
+          kubectl --context kind-rayk8s -n slinky logs deploy/slurm-operator > artifacts/operator.log 2>&1 || true
+          for p in $(kubectl --context kind-rayk8s -n slurm get pods -o name 2>/dev/null); do
+            kubectl --context kind-rayk8s -n slurm logs "$p" --all-containers > "artifacts/$(basename "$p").log" 2>&1 || true
+          done
+          cp -r .data/k8s/logs artifacts/job-logs 2>/dev/null || true
+          cp .data/slinky-values.yaml artifacts/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v7.0.2
+        if: failure()
+        with:
+          name: slinky-logs
+          path: artifacts
+
+      - name: Down
+        if: always()
+        run: make down

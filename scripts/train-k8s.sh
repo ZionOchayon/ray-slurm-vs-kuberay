@@ -31,14 +31,9 @@ for tool in kind kubectl helm; do
 done
 docker info >/dev/null 2>&1 || { echo "train-k8s: docker engine unreachable" >&2; exit 1; }
 
-# Created by the host user first, so the host can write logs next to what the pods (root) write.
 mkdir -p .data/k8s/logs .data/k8s/ray_results .runs
 if [[ "$K8S_SETUP" != 0 ]]; then
-  if ! kind get clusters 2>/dev/null | grep -qx "$CLUSTER"; then
-    echo "train-k8s: creating kind cluster $CLUSTER ($KIND_NODE_IMAGE)"
-    sed "s|__DATA_DIR__|$PWD/.data/k8s|" k8s/kind-config.yaml > .data/kind-config.yaml
-    kind create cluster --name "$CLUSTER" --image "$KIND_NODE_IMAGE" --config .data/kind-config.yaml --wait 180s
-  fi
+  bash scripts/kind-cluster.sh
 
   if ! helm --kube-context "$CTX" status kuberay-operator -n kuberay-system >/dev/null 2>&1; then
     echo "train-k8s: installing the KubeRay operator chart $KUBERAY_VERSION"

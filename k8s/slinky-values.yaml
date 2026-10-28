@@ -1,0 +1,81 @@
+# Values for SchedMD's `slurm` chart (Slinky): a Slurm cluster whose daemons are pods, inside the kind
+# cluster that also runs KubeRay. scripts/up-slinky.sh fills in the __PLACEHOLDERS__ from versions.env.
+# Differences from the chart defaults, and why: docs/SPEC.md §18.1.
+imagePullPolicy: IfNotPresent
+
+controller:
+  slurmctld:
+    image: { repository: __SLURMCTLD_REPO__, tag: __SLURMCTLD_TAG__, digest: __SLURMCTLD_DIGEST__ }
+  reconfigure:
+    image: { repository: __SLURMCTLD_REPO__, tag: __SLURMCTLD_TAG__, digest: __SLURMCTLD_DIGEST__ }
+  logfile:
+    image: { repository: __ALPINE_REPO__, tag: __ALPINE_TAG__, digest: __ALPINE_DIGEST__ }
+  # A lab cluster is recreated, not upgraded; no state to keep across restarts.
+  persistence:
+    enabled: false
+  # Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token (§18.3).
+  metrics:
+    enabled: true
+  extraConfMap:
+    MetricsParameters: ignore_private_data
+
+accounting:
+  enabled: true
+  slurmdbd:
+    image: { repository: __SLURMDBD_REPO__, tag: __SLURMDBD_TAG__, digest: __SLURMDBD_DIGEST__ }
+  storageConfig:
+    host: mariadb
+    port: 3306
+    database: slurm_acct_db
+    username: slurm
+    passwordKeyRef:
+      name: mariadb-password
+      key: password
+
+restapi:
+  slurmrestd:
+    image: { repository: __SLURMRESTD_REPO__, tag: __SLURMRESTD_TAG__, digest: __SLURMRESTD_DIGEST__ }
+
+loginsets:
+  slinky:
+    enabled: true
+    login:
+      image: { repository: __LOGIN_REPO__, tag: __LOGIN_TAG__, digest: __LOGIN_DIGEST__ }
+      volumeMounts:
+        - { name: data, mountPath: /data }
+    initconf:
+      image: { repository: __ALPINE_REPO__, tag: __ALPINE_TAG__, digest: __ALPINE_DIGEST__ }
+    podSpec:
+      volumes:
+        - { name: data, hostPath: { path: /data, type: Directory } }
+    # kind has no load balancer; jobs are submitted with `kubectl exec`.
+    service:
+      spec:
+        type: ClusterIP
+
+nodesets:
+  # Named cpu so its partition is cpu, as on the Compose cluster.
+  cpu:
+    enabled: true
+    replicas: 2
+    # kind has one Kubernetes node; without this, anti-affinity allows one slurmd pod per node.
+    oversubscribeNode: true
+    slurmd:
+      # Built by up-slinky.sh from slinky/Dockerfile and loaded with `kind load`.
+      image: { repository: rayslinky, tag: __RAYSLINKY_TAG__, digest: null }
+      volumeMounts:
+        - { name: data, mountPath: /data }
+        - { name: shm, mountPath: /dev/shm }
+    logfile:
+      image: { repository: __ALPINE_REPO__, tag: __ALPINE_TAG__, digest: __ALPINE_DIGEST__ }
+    partition:
+      enabled: true
+      configMap:
+        Default: "YES"
+        MaxTime: UNLIMITED
+    podSpec:
+      volumes:
+        # Shared /data (the kind node's, i.e. the host's .data/k8s), as Ray Train needs for checkpoints.
+        - { name: data, hostPath: { path: /data, type: Directory } }
+        # Ray's object store lives in /dev/shm, which is 64 MiB in a pod by default (Compose sets 1 GB).
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 1Gi } }

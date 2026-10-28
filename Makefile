@@ -26,7 +26,8 @@ endif
 # `make verify` without RUN= checks the latest run instead of a fresh timestamp.
 VERIFY_RUN := $(if $(filter file,$(origin RUN)),$(shell cat .runs/latest 2>/dev/null),$(RUN))
 
-.PHONY: up train-slurm train-k8s verify down drill-kill-worker drill-preempt drill-two-jobs bench
+.PHONY: up train-slurm train-k8s up-slinky train-slinky verify down drill-kill-worker drill-preempt \
+	drill-two-jobs bench
 
 up:
 	@COMPOSE="$(COMPOSE)" MIN_MEM_GIB="$(MIN_MEM_GIB)" bash scripts/up.sh
@@ -39,6 +40,14 @@ train-k8s:
 	@RUN="$(RUN)" EPOCHS="$(EPOCHS)" WORKERS="$(WORKERS)" DATA="$(DATA)" SAMPLES="$(SAMPLES)" \
 		K8S_TIMEOUT="$(K8S_TIMEOUT)" bash scripts/train-k8s.sh
 
+up-slinky:
+	@bash scripts/up-slinky.sh
+
+train-slinky:
+	@SCHED=slinky RUN="$(RUN)" EPOCHS="$(EPOCHS)" WORKERS="$(WORKERS)" DATA="$(DATA)" SAMPLES="$(SAMPLES)" \
+		TIMEOUT="$(TIMEOUT)" LAUNCHER="$(LAUNCHER)" EXCLUSIVE="$(EXCLUSIVE)" MEM_PER_NODE="$(MEM_PER_NODE)" \
+		bash scripts/train-slurm.sh
+
 verify:
 	@run="$(VERIFY_RUN)"; \
 	if [[ "$(SCHED)" == k8s ]]; then \
@@ -47,6 +56,16 @@ verify:
 		fi; \
 		docker run --rm -v "$$PWD/.data/k8s:/data" -v "$$PWD:/opt/rayslurm:ro" "rayk8s:$(RAY_VERSION)" \
 			python /opt/rayslurm/scripts/verify.py --no-slurm --run "$$run" --job-state "$$(cat ".runs/$$run.k8s")"; \
+	elif [[ "$(SCHED)" == slinky ]]; then \
+		if [[ -z "$$run" || ! -f ".runs/$$run.jobid" ]]; then \
+			echo "verify: no run found (pass RUN=<run>; .runs/<run>.jobid must exist)" >&2; exit 2; \
+		fi; \
+		jobid="$$(cat ".runs/$$run.jobid")"; \
+		state="$$(bash scripts/slinky-exec.sh sacct -n -X -P -j "$$jobid" -o State,ExitCode < /dev/null)"; \
+		docker run --rm -v "$$PWD/.data/k8s:/data" -v "$$PWD:/opt/rayslurm:ro" --entrypoint /opt/venv/bin/python \
+			"rayslinky:$(RAY_VERSION)-$(SLURM_VERSION)" /opt/rayslurm/scripts/verify.py \
+			--run "$$run" --job-id "$$jobid" --slurm-state "$$state" \
+			--launcher "$$(cat ".runs/$$run.launcher" 2>/dev/null || echo symmetric)"; \
 	elif [[ "$(SCHED)" == slurm ]]; then \
 		if [[ -z "$$run" || ! -f ".runs/$$run.jobid" ]]; then \
 			echo "verify: no run found (pass RUN=<run>; .runs/<run>.jobid must exist)" >&2; exit 2; \
@@ -55,7 +74,7 @@ verify:
 			--run "$$run" --job-id "$$(cat ".runs/$$run.jobid")" \
 			--launcher "$$(cat ".runs/$$run.launcher" 2>/dev/null || echo symmetric)"; \
 	else \
-		echo "verify: SCHED must be slurm or k8s" >&2; exit 2; \
+		echo "verify: SCHED must be slurm, k8s or slinky" >&2; exit 2; \
 	fi
 
 drill-kill-worker drill-preempt drill-two-jobs:
