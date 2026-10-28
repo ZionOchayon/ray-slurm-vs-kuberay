@@ -97,7 +97,7 @@ Thresholds below are **budgets** set before any measurement. The v0.1 gate check
 
 ### v0.3: optional, after 8 Nov 2026
 
-Each item gets its own spec section when started. The scope is one paragraph per item:
+Each item gets its own spec section when started; Slinky and Prometheus + Grafana were started on 2026-10-28 and are specified in §18. The scope is one paragraph per item:
 
 - **Slinky (Slurm on Kubernetes):** install SchedMD's slurm-operator into the kind cluster and run the same `ray-symmetric.sbatch` against Slurm pods. This adds a third column to the table, "Slurm on K8s". The open question is whether `ray symmetric-run` behaves the same when the Slurm nodes are pods.
 - **Prometheus and Grafana:** scrape Ray's metrics endpoint and the Slurm job state on both stacks. Ship one dashboard JSON that shows worker restarts and epoch time during the drills. This is for observability, not for new metrics: the numbers in the table still come from `bench/`.
@@ -860,3 +860,92 @@ Decided while building v0.2; the reasons and observations are in `docs/NOTES.md`
 | NFR-08         | CI step "Hygiene: license"                                                                                      |
 | NFR-09         | CI step "Hygiene: banned phrases"                                                                               |
 | NFR-10         | CI step "Negative train" (`DATA=bogus` → exit 1)                                                                |
+
+## 18. v0.3: Slurm on Kubernetes (Slinky) and observability
+
+Written 2026-10-28, when v0.3 was started (§5). Scope: Slinky and Prometheus + Grafana; the optional GPU run is not started. Facts below were checked on 2026-10-28 against the sources in §18.6 unless marked.
+
+### 18.1 Slinky: what changes
+
+A third scheduler, `SCHED=slinky`, runs the **same** `slurm/sbatch/*.sbatch` files and the same `train/train.py` on Slurm whose daemons are pods, managed by SchedMD's slurm-operator, inside the same one-node kind cluster as KubeRay (`rayk8s`). Its results become a third column of the table.
+
+- Operator: `slurm-operator` and `slurm-operator-crds` Helm charts v1.2.3 (OCI, `ghcr.io/slinkyproject/charts`), with `certManager.enabled=false` (the chart then signs its own webhook certificate), in namespace `slinky`.
+- Cluster: the `slurm` chart v1.2.3 (Slurm 26.05, Ubuntu 26.04 images) in namespace `slurm`, values in `k8s/slinky-values.yaml`:
+  - one NodeSet named `cpu` (so its partition is `cpu`, as on Compose) with 2 replicas and `oversubscribeNode: true`, because kind has one node and the default anti-affinity allows one slurmd pod per Kubernetes node;
+  - slurmd image `rayslinky:<RAY_VERSION>-<SLURM_VERSION>` (§18.2), loaded with `kind load`;
+  - accounting enabled against a MariaDB pod running the same pinned `MARIADB_IMAGE`, so `sacct` works and the Slurm scripts need no Slinky-specific state handling;
+  - `/data` as a hostPath (the kind node's `/data`, i.e. the host's `.data/k8s`) on the slurmd and login pods, so Ray Train has shared storage as on Compose;
+  - every image pinned by digest, including the init containers, whose chart default is `alpine:latest` (NFR-01 forbids `latest`);
+  - controller metrics enabled (§18.3).
+- Jobs are submitted from the login pod with `kubectl exec`; the sbatch scripts are baked into the slurmd image at `/opt/rayslurm` (the path Compose mounts) and read from stdin on the login pod.
+
+### 18.2 Slinky: the slurmd image
+
+`slinky/Dockerfile`: `FROM ghcr.io/slinkyproject/slurmd:26.05-ubuntu26.04@<digest>`. The image ships Python 3.14 only, while the Compose and Ray images run Python 3.12, so the Dockerfile installs CPython 3.12 with a pinned `uv` (`ghcr.io/astral-sh/uv@<digest>`), creates `/opt/venv` and installs `train/requirements.lock` with hash checking, as FR-31 does for the other images. It copies `train/`, `slurm/sbatch/` and `scripts/verify.py` to `/opt/rayslurm/`. Same Python, same packages, same `train.py` on all three columns.
+
+### 18.3 Observability: what changes
+
+Prometheus and Grafana for both stacks, one dashboard. This is for watching runs and drills; every number in the table still comes from `bench/`.
+
+- Slurm job and node state: Slurm 26.05's built-in OpenMetrics endpoints on slurmctld's port 6817 (`/metrics/jobs`, `/metrics/nodes`, `/metrics/partitions`, `/metrics/scheduler`), enabled with `MetricsType=metrics/openmetrics` and `MetricsParameters=ignore_private_data`. The Compose image appends both to `slurm.conf`; Slinky sets them through `controller.metrics.enabled`. No exporter is needed.
+- Ray: every Ray node exports metrics on port 8080 (`--metrics-export-port=8080`; KubeRay already uses 8080 and names the port `metrics`). `ray-manual.sbatch` keeps its per-job metrics port, so manual-launcher jobs are not scraped (documented limit).
+- Training progress: `train.py` adds three Ray custom metrics from rank 0 with `ray.util.metrics`: `rsk_epoch_seconds` (gauge, epoch train time), `rsk_global_step` (gauge) and `rsk_restores_total` (counter of `restored` events), each tagged with `run`. Ray exports them with a `ray_` prefix. They mirror `events.jsonl`, which stays the only source for `bench/`.
+- Compose: a `metrics` profile in `slurm/docker-compose.yml` adds `prometheus` and `grafana` (Grafana published on host port 3000 only by `make metrics-up`, bound to 127.0.0.1).
+- kind: `k8s/metrics/` holds plain manifests for one Prometheus (Kubernetes pod discovery for Ray pods; static target for Slinky's slurmctld) and one Grafana, in namespace `monitoring`.
+- One dashboard, `observability/grafana/rsk-dashboard.json`, provisioned in both Grafanas: epoch time and global step per run, restores per run, Ray nodes alive, Slurm jobs by state.
+
+### 18.4 Requirements
+
+**FR-40 [MUST, v0.3]** `make up-slinky` creates the kind cluster if absent, installs the operator charts, MariaDB and the `slurm` chart from pinned versions, builds and loads `rayslinky`, and returns when partition `cpu` has 2 idle nodes.
+
+- Verify: `make up-slinky && kubectl --context kind-rayk8s -n slurm exec <login-pod> -- sinfo -h -p cpu -t idle -o %D | grep -qx 2`
+
+**FR-41 [MUST, v0.3]** `make train-slinky` takes the same variables as `train-slurm` (including `LAUNCHER`, `EXCLUSIVE`, `MEM_PER_NODE`), submits the same sbatch file from the login pod, blocks, and exits as `train-slurm` does. `make verify SCHED=slinky` runs C1–C6 (C1 from `sacct` in the cluster, the rest on `.data/k8s`).
+
+- Verify: `make train-slinky EPOCHS=2 RUN=<run> && make verify SCHED=slinky RUN=<run>`, with `train_py_sha256` equal to the other two schedulers' (FR-21).
+
+**FR-42 [MUST, v0.3]** The drills and M1/M2 accept `SCHED=slinky`, and `make bench` covers all three schedulers. `summarize.py` adds the column "Slurm on K8s (Slinky)", and SC-06's completeness check includes it.
+
+- Verify: `make bench && bash bench/summarize.sh --check README.md`
+
+**FR-43 [SHOULD, v0.3]** CI adds a `slinky` job: `make train-slinky` and `make verify SCHED=slinky`.
+
+**FR-50 [MUST, v0.3]** `make metrics-up SCHED=slurm|k8s` starts Prometheus and Grafana for that stack (for `k8s`, they also scrape Slinky when it is installed), with the dashboard provisioned. `make metrics-check SCHED=…` asks Prometheus for at least one sample of `ray_rsk_epoch_seconds` and of a Slurm job-state series (Slurm stacks) and exits 1 if either is missing.
+
+- Verify: `make up && make metrics-up && make train-slurm EPOCHS=2 && make metrics-check` (and the same with `SCHED=k8s` after `make train-k8s` or `make train-slinky`)
+
+**FR-51 [MUST, v0.3]** `train.py` exports `rsk_epoch_seconds`, `rsk_global_step` and `rsk_restores_total` (§18.3) without changing `events.jsonl` or `run.json`.
+
+**FR-52 [MUST, v0.3]** `observability/grafana/rsk-dashboard.json` is valid Grafana dashboard JSON whose panel queries use only series that FR-50's check confirms exist.
+
+- Verify: CI loads it through Grafana's provisioning and `GET /api/dashboards/uid/rsk` returns 200.
+
+**FR-53 [SHOULD, v0.3]** The CI Slurm job runs `make metrics-up` and `make metrics-check` after training.
+
+### 18.5 Open questions (HYPOTHESIS, each with its check)
+
+- **H1:** `ray symmetric-run` behaves the same when the Slurm nodes are pods: one `On head node.` and one `On worker node.` line, and C4 sees 2 distinct pod IPs. Check: FR-41's verify.
+- **H2:** `srun --overlap` into a running job works from the login pod (D1's injection). Check: `make drill-kill-worker SCHED=slinky`.
+- **H3:** `scontrol requeue` and the USR1 trap behave as on Compose, including the start delay after a requeue. Check: `make drill-preempt SCHED=slinky`.
+- **H4:** Slurm's default `SelectTypeParameters` in Slinky's generated `slurm.conf` makes `--mem` as decisive for packing as on Compose. Check: `scontrol show config | grep SelectTypeParameters` in the cluster, and D3.
+- **H5:** Two slurmd pods on one kind node with `oversubscribeNode: true` both register as idle. Check: FR-40.
+
+### 18.6 Versions (checked 2026-10-28)
+
+| Component | Pin | Source |
+| --- | --- | --- |
+| slurm-operator, -crds, slurm charts | `1.2.3` (2026-09-30; `main` is at `1.3.0-rc1`) | https://github.com/SlinkyProject/slurm-operator tags; `helm/slurm/Chart.yaml` @ v1.2.3 (appVersion `26.05`) |
+| slurmd image | `ghcr.io/slinkyproject/slurmd:26.05-ubuntu26.04@sha256:dc415d580e0c9d9b2e8c785bfe90f2541670bc9a5de255fba9117032eb247d10` (Ubuntu 26.04.1, Python 3.14.4) | ghcr.io |
+| slurmctld, login, slurmdbd, slurmrestd | `26.05-ubuntu26.04` by digest, in `versions.env` | ghcr.io |
+| uv | `0.13.6` by digest | ghcr.io/astral-sh/uv |
+| Prometheus | `quay.io/prometheus/prometheus:v3.15.1@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2` | GitHub releases, quay.io |
+| Grafana | `docker.io/grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205` | GitHub releases, Docker Hub |
+| Slurm metrics | `MetricsType=metrics/openmetrics`, endpoints on slurmctld port 6817, since Slurm 25.11 | https://slurm.schedmd.com/metrics.html |
+
+### 18.7 Exit gate (v0.3)
+
+1. Every v0.3 MUST passes its Verify command.
+2. CI is green on `main` with the Slurm (amd64 and arm64), kind and slinky jobs.
+3. The README table has the Slinky column, generated by `make bench`, and SC-04 passes.
+4. `docs/when-to-use-which.md` and `docs/NOTES.md` cover Slinky, with every new claim linked.
+5. Tag `v0.3.0` exists.
