@@ -38,11 +38,12 @@ echo "$LAUNCHER" > ".runs/$RUN.launcher"
 echo "$SCHED" > ".runs/$RUN.sched"
 rc=0
 # The submit timestamp (M1) is taken right before sbatch, inside the cluster, on the clock the job uses.
-# With no script argument (Slinky), sbatch reads the script from stdin.
-timeout "$TIMEOUT" "${sx[@]}" bash -c 'date +%s.%N >> "/data/logs/$1.submit_ts"; shift; exec sbatch "$@"' _ \
-  "$RUN" --parsable --wait --job-name="$RUN" "${extra[@]}" \
-  --export="ALL,RUN=$RUN,EPOCHS=$EPOCHS,WORKERS=$WORKERS,DATA=$DATA,SAMPLES=$SAMPLES" \
-  "${script_arg[@]}" < "$script" || rc=$?
+# With no script argument (Slinky), sbatch reads the script from stdin. The job's parameters go into
+# sbatch's own environment with a plain --export=ALL: any other --export value (e.g. ALL,RUN=…) makes
+# sbatch set SLURM_GET_USER_ENV=1, and Slinky's slurmd failed to load root's login environment.
+timeout "$TIMEOUT" "${sx[@]}" env RUN="$RUN" EPOCHS="$EPOCHS" WORKERS="$WORKERS" DATA="$DATA" SAMPLES="$SAMPLES" \
+  bash -c 'date +%s.%N >> "/data/logs/$RUN.submit_ts"; exec sbatch "$@"' _ \
+  --parsable --wait --job-name="$RUN" "${extra[@]}" --export=ALL "${script_arg[@]}" < "$script" || rc=$?
 if (( rc == 124 )); then
   "${sx[@]}" scancel --name="$RUN" < /dev/null || true
 fi
