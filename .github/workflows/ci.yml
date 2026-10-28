@@ -61,6 +61,9 @@ jobs:
       - name: Up
         run: make up
 
+      - name: Metrics up (FR-50)
+        run: make metrics-up
+
       - name: Shared /data probe
         run: |
           docker exec slurm-cpu-worker-1 sh -c 'echo ok > /data/.probe'
@@ -91,6 +94,12 @@ jobs:
         run: |
           make train-slurm LAUNCHER=manual EPOCHS=1 RUN=ci-manual-${{ github.run_id }}
           make verify RUN=ci-manual-${{ github.run_id }}
+
+      - name: Metrics check (FR-50, FR-52, FR-53)
+        run: |
+          # Long enough (about half a minute of training) for Ray to export and Prometheus to scrape.
+          make train-slurm EPOCHS=3 SAMPLES=60000 RUN=ci-metrics-${{ github.run_id }}
+          make metrics-check
 
       - name: Results table (SC-04)
         run: bash bench/summarize.sh --check README.md
@@ -142,8 +151,17 @@ jobs:
       - name: Install kind, kubectl, helm (pinned, sha256-checked)
         run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
 
+      - name: Cluster and metrics up
+        run: |
+          set -a; . ./versions.env; set +a
+          bash scripts/kind-cluster.sh
+          make metrics-up SCHED=k8s
+
       - name: Train
-        run: make train-k8s EPOCHS=2 RUN=ci-k8s-${{ github.run_id }}
+        run: make train-k8s EPOCHS=3 SAMPLES=60000 RUN=ci-k8s-${{ github.run_id }}
+
+      - name: Metrics check
+        run: make metrics-check SCHED=k8s
 
       - name: Verify
         run: make verify SCHED=k8s RUN=ci-k8s-${{ github.run_id }}
@@ -186,10 +204,15 @@ jobs:
         run: sudo DEST=/usr/local/bin bash scripts/install-k8s-tools.sh
 
       - name: Up
-        run: make up-slinky
+        run: |
+          make up-slinky
+          make metrics-up SCHED=slinky
 
       - name: Train
-        run: make train-slinky EPOCHS=2 RUN=ci-slinky-${{ github.run_id }}
+        run: make train-slinky EPOCHS=3 SAMPLES=60000 RUN=ci-slinky-${{ github.run_id }}
+
+      - name: Metrics check
+        run: make metrics-check SCHED=slinky
 
       - name: Verify
         run: make verify SCHED=slinky RUN=ci-slinky-${{ github.run_id }}

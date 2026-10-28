@@ -27,7 +27,7 @@ endif
 VERIFY_RUN := $(if $(filter file,$(origin RUN)),$(shell cat .runs/latest 2>/dev/null),$(RUN))
 
 .PHONY: up train-slurm train-k8s up-slinky train-slinky verify down drill-kill-worker drill-preempt \
-	drill-two-jobs bench
+	drill-two-jobs bench metrics-up metrics-check
 
 up:
 	@COMPOSE="$(COMPOSE)" MIN_MEM_GIB="$(MIN_MEM_GIB)" bash scripts/up.sh
@@ -80,10 +80,13 @@ verify:
 drill-kill-worker drill-preempt drill-two-jobs:
 	@SCHED="$(SCHED)" REPS="$(REPS)" bash drills/$(patsubst drill-%,%,$@).sh
 
+metrics-up metrics-check:
+	@SCHED="$(SCHED)" COMPOSE="$(COMPOSE)" bash scripts/metrics.sh $(patsubst metrics-%,%,$@)
+
 bench:
 	@REPS_M1="$(REPS_M1)" REPS_M2="$(REPS_M2)" REPS="$(REPS)" bash bench/bench.sh
 
 down:
-	$(COMPOSE) down -v --remove-orphans
+	$(COMPOSE) --profile metrics down -v --remove-orphans
 	@if command -v kind >/dev/null && kind get clusters 2>/dev/null | grep -qx rayk8s; then \
 		kind delete cluster --name rayk8s; fi

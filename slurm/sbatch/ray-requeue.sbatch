@@ -25,7 +25,7 @@ trap on_usr1 USR1
 # In the background, so bash can run the trap while the step is still going.
 srun --nodes=2 --ntasks=2 --ntasks-per-node=1 --cpus-per-task="$SLURM_CPUS_PER_TASK" \
   ray symmetric-run --address "$head_ip:6379" --min-nodes 2 \
-    --num-cpus="$SLURM_CPUS_PER_TASK" --num-gpus=0 \
+    --num-cpus="$SLURM_CPUS_PER_TASK" --num-gpus=0 --metrics-export-port=8080 \
   -- "${train_cmd[@]}" &
 step=$!
 # A trapped signal makes `wait` return early; keep waiting until the step itself has ended.

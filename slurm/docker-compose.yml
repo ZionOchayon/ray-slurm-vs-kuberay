@@ -1,8 +1,8 @@
 # Derived from giovtorres/slurm-docker-cluster 3.0.2 (MIT). See NOTICE and slurm/LICENSE.slurm-docker-cluster.
 # Changes from upstream: only mysql, slurmdbd, slurmctld and cpu-worker are kept; the Slurm services use
 # rayslurm-node (upstream image + Ray/PyTorch CPU venv, slurm/Dockerfile); the repo is mounted read-only at
-# /opt/rayslurm; no ports are published to the host; images are pinned in versions.env; cpu-worker starts
-# through slurm/worker-entrypoint.sh.
+# /opt/rayslurm; no ports are published to the host (except Grafana on 127.0.0.1 in the `metrics` profile);
+# images are pinned in versions.env; cpu-worker starts through slurm/worker-entrypoint.sh.
 # Run through the Makefile: docker compose -p slurm --env-file versions.env -f slurm/docker-compose.yml
 
 services:
@@ -133,6 +133,34 @@ services:
       start_period: 20s
     deploy:
       replicas: 2
+
+  # `make metrics-up` (profile metrics): Prometheus scrapes slurmctld's OpenMetrics and the Ray nodes,
+  # Grafana shows observability/grafana/rsk-dashboard.json (SPEC §18.3).
+  prometheus:
+    image: ${PROMETHEUS_IMAGE}
+    profiles: [metrics]
+    container_name: prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=2d"]
+    volumes:
+      - ../observability/prometheus/compose.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - slurm-network
+
+  grafana:
+    image: ${GRAFANA_IMAGE}
+    profiles: [metrics]
+    container_name: grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/rsk-dashboard.json
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/rsk-dashboard.json:/var/lib/grafana/dashboards/rsk-dashboard.json:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - slurm-network
 
 volumes:
   etc_munge:

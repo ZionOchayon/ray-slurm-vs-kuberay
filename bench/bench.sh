@@ -59,7 +59,7 @@ for sched in ${BENCH_SCHEDS:-slurm k8s}; do
   write_peaks "$sched" "$stats"
   # Free the machine for the next scheduler.
   if [[ $sched == slurm ]]; then
-    docker compose -p slurm --env-file versions.env -f slurm/docker-compose.yml down -v --remove-orphans
+    docker compose -p slurm --env-file versions.env -f slurm/docker-compose.yml --profile metrics down -v --remove-orphans
     # BENCH_PRUNE=1 (CI): small runners do not have the disk for both stacks' images at once.
     if [[ "${BENCH_PRUNE:-0}" == 1 ]]; then
       docker image rm "rayslurm-node:$RAY_VERSION-$SLURM_VERSION" "$SLURM_BASE_IMAGE" "$MARIADB_IMAGE" || true

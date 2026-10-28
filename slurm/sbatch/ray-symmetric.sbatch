@@ -27,6 +27,6 @@ echo "job=$SLURM_JOB_ID run=$RUN nodes=$SLURM_JOB_NODELIST head_node=$head_node 
 
 srun --nodes=2 --ntasks=2 --ntasks-per-node=1 --cpus-per-task="$SLURM_CPUS_PER_TASK" \
   ray symmetric-run --address "$head_ip:6379" --min-nodes 2 \
-    --num-cpus="$SLURM_CPUS_PER_TASK" --num-gpus=0 \
+    --num-cpus="$SLURM_CPUS_PER_TASK" --num-gpus=0 --metrics-export-port=8080 \
   -- python -u /opt/rayslurm/train/train.py --run-name "$RUN" --epochs "$EPOCHS" \
     --workers "$WORKERS" --data "$DATA" --synthetic-samples "$SAMPLES"
