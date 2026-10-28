@@ -8,7 +8,7 @@ source drills/lib.sh
 : "${REPS_M2:?}"
 
 csv_open m2
-k8s_setup
+sched_setup
 failed=0
 for workers in ${M2_WORKERS:-1 2}; do
   for rep in $(seq "$REPS_M2"); do

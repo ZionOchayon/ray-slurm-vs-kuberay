@@ -2,8 +2,9 @@
 # Shared helpers for drills/*.sh and bench/*.sh (sourced). Host side is bash only; anything that
 # parses events runs drills/analyze.py inside a container that sees the run's /data.
 # Every timestamp comes from inside the Docker VM (slurmctld or the kind node), never the host clock.
-: "${SCHED:?SCHED must be slurm or k8s}"
-[[ "$SCHED" =~ ^(slurm|k8s)$ ]] || { echo "SCHED must be slurm or k8s" >&2; exit 2; }
+# SCHED=slinky is Slurm in kind: Slurm commands run in the login pod (sx), files live in .data/k8s.
+: "${SCHED:?SCHED must be slurm, k8s or slinky}"
+[[ "$SCHED" =~ ^(slurm|k8s|slinky)$ ]] || { echo "SCHED must be slurm, k8s or slinky" >&2; exit 2; }
 : "${RAY_VERSION:?run through make, which loads versions.env}"
 
 K8S_NODE=rayk8s-control-plane
@@ -11,9 +12,14 @@ K8S_CTX=kind-rayk8s
 RAW_DIR=docs/results/raw
 mkdir -p "$RAW_DIR" .runs .data/drills
 
-# Timestamp from the VM clock that also stamps the events.
+# Timestamp from the VM clock that also stamps the events (Slinky's pods share the kind node's kernel).
 vm_now() {
   if [[ $SCHED == slurm ]]; then docker exec slurmctld date +%s.%N; else docker exec "$K8S_NODE" date +%s.%N; fi
+}
+
+# Run a Slurm command where Slurm's client commands work: slurmctld (Compose) or the login pod (Slinky).
+sx() {
+  if [[ $SCHED == slurm ]]; then docker exec slurmctld "$@" < /dev/null; else bash scripts/slinky-exec.sh "$@" < /dev/null; fi
 }
 
 kc() { kubectl --context "$K8S_CTX" "$@"; }
@@ -24,6 +30,10 @@ analyze() {
   shift 2
   if [[ $SCHED == slurm ]]; then
     docker exec slurmctld /opt/venv/bin/python /opt/rayslurm/drills/analyze.py "$cmd" \
+      --run-dir "/data/ray_results/$run" "$@"
+  elif [[ $SCHED == slinky ]]; then
+    docker run --rm -v "$PWD/.data/k8s:/data" -v "$PWD:/opt/rayslurm:ro" --entrypoint /opt/venv/bin/python \
+      "rayslinky:$RAY_VERSION-$SLURM_VERSION" /opt/rayslurm/drills/analyze.py "$cmd" \
       --run-dir "/data/ray_results/$run" "$@"
   else
     docker run --rm -v "$PWD/.data/k8s:/data" -v "$PWD:/opt/rayslurm:ro" "rayk8s:$RAY_VERSION" \
@@ -63,7 +73,7 @@ start_train() {
   shift
   local script=scripts/train-slurm.sh
   [[ $SCHED == k8s ]] && script=scripts/train-k8s.sh
-  env RUN="$run" EPOCHS="${DRILL_EPOCHS:-4}" WORKERS=2 DATA=synthetic SAMPLES="${DRILL_SAMPLES:-60000}" \
+  env SCHED="$SCHED" RUN="$run" EPOCHS="${DRILL_EPOCHS:-4}" WORKERS=2 DATA=synthetic SAMPLES="${DRILL_SAMPLES:-60000}" \
     TIMEOUT="${TIMEOUT:-1200}" K8S_TIMEOUT="${K8S_TIMEOUT:-1200}" K8S_SETUP=0 "$@" \
     bash "$script" > ".data/drills/$run.log" 2>&1 &
   TRAIN_PID=$!
@@ -80,8 +90,8 @@ k8s_pod() {
 
 # Run a command inside the VM and print the VM timestamp taken just before it.
 inject() {
-  if [[ $SCHED == slurm ]]; then
-    docker exec slurmctld bash -c 'date +%s.%N; "$@" >&2' _ "$@"
+  if [[ $SCHED != k8s ]]; then
+    sx bash -c 'date +%s.%N; "$@" >&2' _ "$@" < /dev/null
   else
     docker exec "$K8S_NODE" sh -c 'date +%s.%N; "$@" >&2' _ \
       kubectl --kubeconfig /etc/kubernetes/admin.conf "$@"
@@ -92,10 +102,13 @@ verify_run() {
   make --no-print-directory verify SCHED="$SCHED" RUN="$1" > ".data/drills/$1.verify" 2>&1
 }
 
-# One-time K8s setup (cluster, operator, image) before runs that skip it.
-k8s_setup() {
-  [[ $SCHED == k8s ]] || return 0
-  K8S_SETUP=only RUN=setup EPOCHS=1 WORKERS=1 DATA=synthetic SAMPLES=1 K8S_TIMEOUT=1 bash scripts/train-k8s.sh
+# One-time setup before runs that skip it: KubeRay (cluster, operator, image) or Slinky (up-slinky).
+# The Compose cluster is brought up by `make up` beforehand.
+sched_setup() {
+  case $SCHED in
+    k8s) K8S_SETUP=only RUN=setup EPOCHS=1 WORKERS=1 DATA=synthetic SAMPLES=1 K8S_TIMEOUT=1 bash scripts/train-k8s.sh ;;
+    slinky) bash scripts/up-slinky.sh ;;
+  esac
 }
 
 # CSV: metric, scheduler, config, rep, value, unit, run, git_sha, host_profile, date (SPEC §9.5).
@@ -108,7 +121,7 @@ host_profile() {
   arch=$(docker info --format '{{.Architecture}}')
   echo "${model:-unknown cpu}; ${ncpu} cpu; ${mem} GiB; ${os}; ${arch}" | tr ',"' ';;'
 }
-GIT_SHA=$(git rev-parse --short HEAD)$(git diff --quiet HEAD -- train scripts drills bench slurm k8s || echo -dirty)
+GIT_SHA=$(git rev-parse --short HEAD)$(git diff --quiet HEAD -- train scripts drills bench slurm k8s slinky || echo -dirty)
 HOST_PROFILE=$(host_profile)
 
 csv_open() {

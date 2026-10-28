@@ -2,7 +2,7 @@
 # `make bench` (SPEC FR-28): M1 and M2 on both schedulers, then the three drills on both, then
 # bench/summarize.py (results.csv, table.md, README block). One scheduler at a time, so the two lab
 # clusters never compete for the same CPUs; `docker stats` is sampled every 5 s for peak memory (NFR-04).
-# BENCH_SCHEDS limits the schedulers (default "slurm k8s"), BENCH_STEPS the steps (default
+# BENCH_SCHEDS limits the schedulers (default "slurm k8s slinky"), BENCH_STEPS the steps (default
 # "m1 m2 kill-worker preempt two-jobs"). Exit: 0 every step passed, 1 otherwise.
 set -euo pipefail
 : "${REPS_M1:?}" "${REPS_M2:?}" "${REPS:?}"
@@ -38,7 +38,7 @@ write_peaks() {
   ' _ "$samples"
 }
 
-for sched in ${BENCH_SCHEDS:-slurm k8s}; do
+for sched in ${BENCH_SCHEDS:-slurm k8s slinky}; do
   stats=.data/bench/stats-$sched.txt
   : > "$stats"
   if [[ $sched == slurm ]]; then
@@ -66,7 +66,12 @@ for sched in ${BENCH_SCHEDS:-slurm k8s}; do
       docker builder prune -af >/dev/null || true
     fi
   else
+    # KubeRay and Slinky share the kind cluster; each phase starts from a fresh one.
     kind delete cluster --name rayk8s
+    if [[ "${BENCH_PRUNE:-0}" == 1 && $sched == k8s ]]; then
+      docker image rm "rayk8s:$RAY_VERSION" "$RAY_IMAGE" || true
+      docker builder prune -af >/dev/null || true
+    fi
   fi
 done
 

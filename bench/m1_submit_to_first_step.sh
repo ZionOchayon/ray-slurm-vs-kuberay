@@ -8,15 +8,15 @@ source drills/lib.sh
 : "${REPS_M1:?}"
 
 csv_open m1
-k8s_setup
+sched_setup
 failed=0
 for rep in $(seq "$REPS_M1"); do
   run="m1-$SCHED-$(date -u +%H%M%S)-$rep"
   DRILL_EPOCHS=1 DRILL_SAMPLES=8192 start_train "$run"
   rc=0
   wait "$TRAIN_PID" || rc=$?
-  if [[ $SCHED == slurm ]]; then
-    submit_ts=$(docker exec slurmctld tail -n 1 "/data/logs/$run.submit_ts")
+  if [[ $SCHED != k8s ]]; then
+    submit_ts=$(sx tail -n 1 "/data/logs/$run.submit_ts" < /dev/null)
   else
     submit_ts=$(tail -n 1 ".data/k8s/logs/$run.submit_ts")
   fi

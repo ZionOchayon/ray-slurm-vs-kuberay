@@ -11,12 +11,12 @@ set -euo pipefail
 source drills/lib.sh
 : "${REPS:?}"
 
-if [[ $SCHED == slurm ]]; then configs=(a b c); else configs=(k); fi
+if [[ $SCHED != k8s ]]; then configs=(a b c); else configs=(k); fi
 # Shorter than D1/D2: the question is whether both jobs run, not how they recover.
 DRILL_EPOCHS=${DRILL_EPOCHS:-2} DRILL_SAMPLES=${DRILL_SAMPLES:-16384}
 export DRILL_EPOCHS DRILL_SAMPLES
 csv_open drill-two-jobs
-k8s_setup
+sched_setup
 failed=0
 
 # Last line of a job's log that looks like an error, for the CSV.

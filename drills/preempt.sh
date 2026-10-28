@@ -11,18 +11,18 @@ set -euo pipefail
 source drills/lib.sh
 : "${REPS:?}"
 
-if [[ $SCHED == slurm ]]; then configs=(usr1-trap admin-requeue); else configs=(head-pod-delete); fi
+if [[ $SCHED != k8s ]]; then configs=(usr1-trap admin-requeue); else configs=(head-pod-delete); fi
 # Long enough that work remains after the pod's 30 s termination grace period: with 4 epochs the head
 # pod finished the run while terminating (docs/NOTES.md). Same length on both schedulers.
 DRILL_EPOCHS=${DRILL_EPOCHS:-10}
 csv_open drill-preempt
-k8s_setup
+sched_setup
 failed=0
 for config in "${configs[@]}"; do
   for rep in $(seq "$REPS"); do
     run="d2-$SCHED-$(date -u +%H%M%S)-$rep"
     echo "== D2 $SCHED $config rep $rep: $run"
-    if [[ $SCHED == slurm ]]; then start_train "$run" LAUNCHER=requeue; else start_train "$run" BACKOFF_LIMIT=1; fi
+    if [[ $SCHED != k8s ]]; then start_train "$run" LAUNCHER=requeue; else start_train "$run" BACKOFF_LIMIT=1; fi
     if ! wait_for 600 ckpt_registered "$run" checkpoint_epoch_000; then
       echo "D2: $run never registered checkpoint_epoch_000" >&2
       wait "$TRAIN_PID" || true
@@ -33,10 +33,10 @@ for config in "${configs[@]}"; do
 
     case $config in
       usr1-trap)
-        job=$(docker exec slurmctld squeue -h --name="$run" -o %A)
+        job=$(sx squeue -h --name="$run" -o %A)
         ts=$(inject scancel --batch --signal=USR1 "$job" | head -n 1) ;;
       admin-requeue)
-        job=$(docker exec slurmctld squeue -h --name="$run" -o %A)
+        job=$(sx squeue -h --name="$run" -o %A)
         ts=$(inject scontrol requeue "$job" | head -n 1) ;;
       head-pod-delete)
         pod=$(k8s_pod "$run" head)
