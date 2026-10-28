@@ -1,6 +1,0 @@
-metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
-NFR04_peak_mem_mib,slurm,mysql,1,119,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T08:47:48Z
-NFR04_peak_mem_mib,slurm,slurm-cpu-worker-1,1,938,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T08:47:48Z
-NFR04_peak_mem_mib,slurm,slurm-cpu-worker-2,1,98,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T08:47:48Z
-NFR04_peak_mem_mib,slurm,slurmctld,1,20,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T08:47:48Z
-NFR04_peak_mem_mib,slurm,slurmdbd,1,9,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T08:47:48Z
