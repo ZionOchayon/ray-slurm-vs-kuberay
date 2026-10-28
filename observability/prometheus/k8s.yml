@@ -1,0 +1,46 @@
+# Prometheus inside kind (`make metrics-up SCHED=k8s`): KubeRay's Ray pods, Slinky's slurmd pods (Ray on
+# port 8080) and Slinky's slurmctld (Slurm OpenMetrics on 6817). SPEC §18.3.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs:
+  - job_name: ray
+    kubernetes_sd_configs: [{ role: pod }]
+    relabel_configs:
+      # KubeRay pods (label ray.io/node-type) and Slinky slurmd pods both serve Ray metrics on 8080.
+      - source_labels: [__meta_kubernetes_pod_label_ray_io_node_type, __meta_kubernetes_pod_label_app_kubernetes_io_name]
+        regex: (head|worker);.*|;slurmd
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: $1:8080
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        regex: slurmd
+        target_label: scheduler
+        replacement: slinky
+      - source_labels: [__meta_kubernetes_pod_label_ray_io_node_type]
+        regex: .+
+        target_label: scheduler
+        replacement: k8s
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+  - job_name: slurm-jobs
+    metrics_path: /metrics/jobs
+    kubernetes_sd_configs: [{ role: pod }]
+    relabel_configs: &slurmctld
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        regex: slurmctld
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: $1:6817
+      - target_label: scheduler
+        replacement: slinky
+  - job_name: slurm-nodes
+    metrics_path: /metrics/nodes
+    kubernetes_sd_configs: [{ role: pod }]
+    relabel_configs: *slurmctld
+  - job_name: slurm-partitions
+    metrics_path: /metrics/partitions
+    kubernetes_sd_configs: [{ role: pod }]
+    relabel_configs: *slurmctld

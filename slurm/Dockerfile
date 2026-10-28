@@ -18,3 +18,7 @@ RUN test -n "${RAY_VERSION}" && test -n "${TORCH_VERSION}" && test -n "${TORCHVI
     && /opt/venv/bin/pip install --no-cache-dir --require-hashes -r /tmp/requirements.lock \
         --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
     && rm /tmp/requirements.lock
+
+# Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token (SPEC §18.3).
+# The compose volume etc_slurm is first filled from this directory.
+RUN printf 'MetricsType=metrics/openmetrics\nMetricsParameters=ignore_private_data\n' >> /etc/slurm/slurm.conf

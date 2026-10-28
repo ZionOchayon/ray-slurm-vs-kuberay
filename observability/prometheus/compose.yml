@@ -1,0 +1,21 @@
+# Prometheus for the Compose Slurm cluster (`make metrics-up`). SPEC §18.3.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs:
+  # Slurm's built-in OpenMetrics endpoints on slurmctld's port (MetricsType=metrics/openmetrics).
+  - job_name: slurm-jobs
+    metrics_path: /metrics/jobs
+    static_configs: [{ targets: ["slurmctld:6817"], labels: { scheduler: slurm } }]
+  - job_name: slurm-nodes
+    metrics_path: /metrics/nodes
+    static_configs: [{ targets: ["slurmctld:6817"], labels: { scheduler: slurm } }]
+  - job_name: slurm-partitions
+    metrics_path: /metrics/partitions
+    static_configs: [{ targets: ["slurmctld:6817"], labels: { scheduler: slurm } }]
+  # Ray nodes started by ray-symmetric / ray-requeue (--metrics-export-port=8080). Targets are down
+  # between jobs; that is expected.
+  - job_name: ray
+    static_configs:
+      - targets: ["slurm-cpu-worker-1:8080", "slurm-cpu-worker-2:8080"]
+        labels: { scheduler: slurm }
