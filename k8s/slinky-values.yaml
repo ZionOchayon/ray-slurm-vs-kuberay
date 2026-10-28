@@ -1,5 +1,5 @@
 # Values for SchedMD's `slurm` chart (Slinky): a Slurm cluster whose daemons are pods, inside the kind
-# cluster that also runs KubeRay. scripts/up-slinky.sh fills in the __PLACEHOLDERS__ from versions.env.
+# cluster that also runs KubeRay. scripts/up-slinky.sh fills in the double-underscore placeholders from versions.env.
 # Differences from the chart defaults, and why: docs/SPEC.md §18.1.
 imagePullPolicy: IfNotPresent
 

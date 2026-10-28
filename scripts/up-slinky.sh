@@ -37,8 +37,9 @@ values=.data/slinky-values.yaml
 cp k8s/slinky-values.yaml "$values"
 for pair in SLURMCTLD:SLINKY_SLURMCTLD_IMAGE SLURMDBD:SLINKY_SLURMDBD_IMAGE SLURMRESTD:SLINKY_SLURMRESTD_IMAGE \
   LOGIN:SLINKY_LOGIN_IMAGE ALPINE:ALPINE_IMAGE; do
-  key=${pair%%:*} ref=${!pair#*:}
-  [[ "$ref" == *@sha256:* ]] || { echo "up-slinky: ${pair#*:} must be pinned by digest" >&2; exit 1; }
+  key=${pair%%:*} var=${pair#*:}
+  ref=${!var}
+  [[ "$ref" == *@sha256:* ]] || { echo "up-slinky: $var must be pinned by digest" >&2; exit 1; }
   name=${ref%@*}
   sed -i -e "s|__${key}_REPO__|${name%:*}|" -e "s|__${key}_TAG__|${name##*:}|" -e "s|__${key}_DIGEST__|${ref#*@}|" "$values"
 done
