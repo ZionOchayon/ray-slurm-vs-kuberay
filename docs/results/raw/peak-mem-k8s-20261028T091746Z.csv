@@ -1,3 +1,0 @@
-metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
-NFR04_peak_mem_mib,k8s,--,1,0,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T09:17:46Z
-NFR04_peak_mem_mib,k8s,rayk8s-control-plane,1,950,MiB,bench,58a3327,AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T09:17:46Z

@@ -1,0 +1,10 @@
+metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
+M3_time_to_resume_s,k8s,default,1,8.263,s,d1-k8s-161719-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:18:58Z
+M3_steps_lost,k8s,default,1,25,steps,d1-k8s-161719-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:18:58Z
+D1_outcome,k8s,default,1,pass,outcome,d1-k8s-161719-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:18:58Z
+M3_time_to_resume_s,k8s,default,2,8.032,s,d1-k8s-161858-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:20:37Z
+M3_steps_lost,k8s,default,2,55,steps,d1-k8s-161858-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:20:37Z
+D1_outcome,k8s,default,2,pass,outcome,d1-k8s-161858-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:20:37Z
+M3_time_to_resume_s,k8s,default,3,8.459,s,d1-k8s-162037-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:22:16Z
+M3_steps_lost,k8s,default,3,55,steps,d1-k8s-162037-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:22:16Z
+D1_outcome,k8s,default,3,pass,outcome,d1-k8s-162037-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T16:22:16Z

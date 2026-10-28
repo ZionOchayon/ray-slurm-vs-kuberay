@@ -10,23 +10,23 @@ The same `train/train.py` (a Ray Train `TorchTrainer`, 2 CPU workers, a checkpoi
 ## Results
 
 <!-- results:start -->
-| Metric | Slurm (ray symmetric-run) | KubeRay (RayJob on kind) |
-| --- | --- | --- |
-| M1 submit → first step, s: median [min–max] | [23.846 [23.296–25.527], n=5](/docs/results/results.csv#L52) | [34.972 [34.502–39.053], n=5](/docs/results/results.csv#L49) |
-| M2 s/epoch, 1 worker (epochs ≥ 1) | [8.173 [7.888–8.956], n=6](/docs/results/results.csv#L73) | [9.366 [7.948–9.511], n=6](/docs/results/results.csv#L67) |
-| M2 s/epoch, 2 workers (epochs ≥ 1) | [6.751 [6.655–6.973], n=6](/docs/results/results.csv#L76) | [5.286 [5.018–5.597], n=6](/docs/results/results.csv#L70) |
-| M2 ratio 2 workers / 1 worker | [0.826](/docs/results/results.csv#L126) | [0.564](/docs/results/results.csv#L127) |
-| M3 kill one worker: time to resume, s | [9.52 [9.373–9.623], n=3](/docs/results/results.csv#L100) | [6.655 [6.385–6.664], n=3](/docs/results/results.csv#L97) |
-| M3 kill one worker: steps lost | [65 [15–65], n=3](/docs/results/results.csv#L94) | [55 [55–65], n=3](/docs/results/results.csv#L91) |
-| D1 kill one worker: outcome | [pass=3](/docs/results/results.csv#L3) | [pass=3](/docs/results/results.csv#L2) |
-| D2 preemption: outcome | admin-requeue: [pass=3](/docs/results/results.csv#L5)<br>usr1-trap: [pass=3](/docs/results/results.csv#L6) | [pass=3](/docs/results/results.csv#L4) |
-| D2 preemption: time to resume, s | admin-requeue: [157.389 [157.057–177.587], n=3](/docs/results/results.csv#L28)<br>usr1-trap: [180.019 [174.063–181.586], n=3](/docs/results/results.csv#L31) | [57.162 [56.734–57.438], n=3](/docs/results/results.csv#L25) |
-| M4 two jobs at once: outcome | a: [both-failed=2, second-failed=1, flaky](/docs/results/results.csv#L116)<br>b: [serialized=3](/docs/results/results.csv#L117)<br>c: [both-concurrent=3](/docs/results/results.csv#L118) | [both-concurrent=3](/docs/results/results.csv#L115) |
-| M4 two jobs at once: makespan, s | a: [107.222 [75.191–1194.933], n=3](/docs/results/results.csv#L106)<br>b: [234.422 [202.377–234.43], n=3](/docs/results/results.csv#L109)<br>c: [43.157 [43.146–43.165], n=3](/docs/results/results.csv#L112) | [63.21 [63.201–63.223], n=3](/docs/results/results.csv#L103) |
+| Metric | Slurm (ray symmetric-run) | KubeRay (RayJob on kind) | Slurm on K8s (Slinky) |
+| --- | --- | --- | --- |
+| M1 submit → first step, s: median [min–max] | [31.16 [30.892–31.9], n=5](/docs/results/results.csv#L84) | [41.305 [41.199–44.509], n=5](/docs/results/results.csv#L78) | [23.105 [22.413–34.879], n=5](/docs/results/results.csv#L81) |
+| M2 s/epoch, 1 worker (epochs ≥ 1) | [11.943 [11.74–12.899], n=6](/docs/results/results.csv#L117) | [12.119 [11.881–12.341], n=6](/docs/results/results.csv#L105) | [11.909 [11.829–12.071], n=6](/docs/results/results.csv#L111) |
+| M2 s/epoch, 2 workers (epochs ≥ 1) | [11.086 [10.749–11.177], n=6](/docs/results/results.csv#L120) | [8.007 [7.54–8.182], n=6](/docs/results/results.csv#L108) | [7.526 [7.296–7.737], n=6](/docs/results/results.csv#L114) |
+| M2 ratio 2 workers / 1 worker | [0.928](/docs/results/results.csv#L195) | [0.661](/docs/results/results.csv#L196) | [0.632](/docs/results/results.csv#L197) |
+| M3 kill one worker: time to resume, s | [12.811 [12.439–13.163], n=3](/docs/results/results.csv#L156) | [8.263 [8.032–8.459], n=3](/docs/results/results.csv#L150) | [6.695 [6.34–6.851], n=3](/docs/results/results.csv#L153) |
+| M3 kill one worker: steps lost | [25 [15–35], n=3](/docs/results/results.csv#L147) | [55 [25–55], n=3](/docs/results/results.csv#L141) | [45 [35–55], n=3](/docs/results/results.csv#L144) |
+| D1 kill one worker: outcome | [pass=3](/docs/results/results.csv#L4) | [pass=3](/docs/results/results.csv#L2) | [pass=3](/docs/results/results.csv#L3) |
+| D2 preemption: outcome | admin-requeue: [pass=3](/docs/results/results.csv#L8)<br>usr1-trap: [pass=3](/docs/results/results.csv#L9) | [pass=3](/docs/results/results.csv#L5) | admin-requeue: [pass=3](/docs/results/results.csv#L6)<br>usr1-trap: [pass=3](/docs/results/results.csv#L7) |
+| D2 preemption: time to resume, s | admin-requeue: [178.683 [164.033–192.286], n=3](/docs/results/results.csv#L49)<br>usr1-trap: [164.448 [157.526–179.825], n=3](/docs/results/results.csv#L52) | [63.393 [63.315–64.725], n=3](/docs/results/results.csv#L40) | admin-requeue: [156.654 [152.517–158.343], n=3](/docs/results/results.csv#L43)<br>usr1-trap: [182.257 [174.198–194.847], n=3](/docs/results/results.csv#L46) |
+| M4 two jobs at once: outcome | a: [both-failed=3](/docs/results/results.csv#L184)<br>b: [serialized=3](/docs/results/results.csv#L185)<br>c: [both-concurrent=3](/docs/results/results.csv#L186) | [both-concurrent=3](/docs/results/results.csv#L180) | a: [both-failed=3](/docs/results/results.csv#L181)<br>b: [serialized=3](/docs/results/results.csv#L182)<br>c: [both-concurrent=3](/docs/results/results.csv#L183) |
+| M4 two jobs at once: makespan, s | a: [1131.113 [842.652–1195.275], n=3](/docs/results/results.csv#L171)<br>b: [234.524 [234.506–234.713], n=3](/docs/results/results.csv#L174)<br>c: [75.252 [43.244–75.258], n=3](/docs/results/results.csv#L177) | [75.283 [74.282–75.4], n=3](/docs/results/results.csv#L159) | a: [1131.206 [843.6–1132.1], n=3](/docs/results/results.csv#L162)<br>b: [235.542 [235.531–235.563], n=3](/docs/results/results.csv#L165)<br>c: [43.201 [43.199–75.26], n=3](/docs/results/results.csv#L168) |
 
 _All results come from CPU-only containers on **one** machine, where both "nodes" share the same physical CPUs, memory and disk. They compare how the schedulers launch, recover and share a Ray job. They say nothing about hardware speed, network fabrics or multi-node scaling._
 
-Host: `AMD EPYC 9V74 80-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64`. Raw data: [`docs/results/raw/`](/docs/results/raw/), generated by `make bench`. D2 configs: `usr1-trap`, `admin-requeue` (Slurm), `head-pod-delete` (K8s). M4 configs: (a) default, (b) `--exclusive`, (c) per-job ports, (k) two RayJobs.
+Host: `AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64`. Raw data: [`docs/results/raw/`](/docs/results/raw/), generated by `make bench`. D2 configs: `usr1-trap`, `admin-requeue` (Slurm and Slinky), `head-pod-delete` (KubeRay). M4 configs: (a) default, (b) `--exclusive`, (c) per-job ports, (k) two RayJobs.
 <!-- results:end -->
 
 ## Quickstart

@@ -1,0 +1,73 @@
+metric,scheduler,config,rep,value,unit,run,git_sha,host_profile,date
+D3_job_exit,slurm,a,1.1,0,code,d3a-slurm-145141-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_verified,slurm,a,1.1,0,bool,d3a-slurm-145141-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_message,slurm,a,1.1,Failed to start Ray: Command '['ray'; 'start'; '--address'; '172.18.0.6:6379'; '--block'; '--num-cpus=2'; '--num-gpus=0'; '--metrics-export-port=8080']' returne,text,d3a-slurm-145141-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_exit,slurm,a,1.2,1,code,d3a-slurm-145141-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_verified,slurm,a,1.2,0,bool,d3a-slurm-145141-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_message,slurm,a,1.2,train-slurm: job 21 ended FAILED,text,d3a-slurm-145141-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+M4_outcome,slurm,a,1,both-failed,outcome,d3a-slurm-145141-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+M4_makespan_s,slurm,a,1,1131.113,s,d3a-slurm-145141-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:10:33Z
+D3_job_exit,slurm,a,2.1,0,code,d3a-slurm-151033-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_verified,slurm,a,2.1,0,bool,d3a-slurm-151033-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_message,slurm,a,2.1,Failed to start Ray: Command '['ray'; 'start'; '--address'; '172.18.0.6:6379'; '--block'; '--num-cpus=2'; '--num-gpus=0'; '--metrics-export-port=8080']' returne,text,d3a-slurm-151033-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_exit,slurm,a,2.2,1,code,d3a-slurm-151033-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_verified,slurm,a,2.2,0,bool,d3a-slurm-151033-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_message,slurm,a,2.2,train-slurm: job 23 ended FAILED,text,d3a-slurm-151033-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+M4_outcome,slurm,a,2,both-failed,outcome,d3a-slurm-151033-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+M4_makespan_s,slurm,a,2,1195.275,s,d3a-slurm-151033-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:30:30Z
+D3_job_exit,slurm,a,3.1,0,code,d3a-slurm-153030-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_verified,slurm,a,3.1,0,bool,d3a-slurm-153030-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_message,slurm,a,3.1,Failed to start Ray: Command '['ray'; 'start'; '--address'; '172.18.0.6:6379'; '--block'; '--num-cpus=2'; '--num-gpus=0'; '--metrics-export-port=8080']' returne,text,d3a-slurm-153030-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_exit,slurm,a,3.2,1,code,d3a-slurm-153030-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_verified,slurm,a,3.2,0,bool,d3a-slurm-153030-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_message,slurm,a,3.2,train-slurm: job 26 ended FAILED,text,d3a-slurm-153030-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+M4_outcome,slurm,a,3,both-failed,outcome,d3a-slurm-153030-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+M4_makespan_s,slurm,a,3,842.652,s,d3a-slurm-153030-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:44:34Z
+D3_job_exit,slurm,b,1.1,0,code,d3b-slurm-154434-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_verified,slurm,b,1.1,1,bool,d3b-slurm-154434-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_message,slurm,b,1.1,-,text,d3b-slurm-154434-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_exit,slurm,b,1.2,0,code,d3b-slurm-154434-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_verified,slurm,b,1.2,1,bool,d3b-slurm-154434-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_message,slurm,b,1.2,-,text,d3b-slurm-154434-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+M4_outcome,slurm,b,1,serialized,outcome,d3b-slurm-154434-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+M4_makespan_s,slurm,b,1,234.524,s,d3b-slurm-154434-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:48:30Z
+D3_job_exit,slurm,b,2.1,0,code,d3b-slurm-154830-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_verified,slurm,b,2.1,1,bool,d3b-slurm-154830-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_message,slurm,b,2.1,-,text,d3b-slurm-154830-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_exit,slurm,b,2.2,0,code,d3b-slurm-154830-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_verified,slurm,b,2.2,1,bool,d3b-slurm-154830-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_message,slurm,b,2.2,-,text,d3b-slurm-154830-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+M4_outcome,slurm,b,2,serialized,outcome,d3b-slurm-154830-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+M4_makespan_s,slurm,b,2,234.713,s,d3b-slurm-154830-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:52:26Z
+D3_job_exit,slurm,b,3.1,0,code,d3b-slurm-155226-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_verified,slurm,b,3.1,1,bool,d3b-slurm-155226-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_message,slurm,b,3.1,-,text,d3b-slurm-155226-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_exit,slurm,b,3.2,0,code,d3b-slurm-155226-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_verified,slurm,b,3.2,1,bool,d3b-slurm-155226-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_message,slurm,b,3.2,-,text,d3b-slurm-155226-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+M4_outcome,slurm,b,3,serialized,outcome,d3b-slurm-155226-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+M4_makespan_s,slurm,b,3,234.506,s,d3b-slurm-155226-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:56:22Z
+D3_job_exit,slurm,c,1.1,0,code,d3c-slurm-155622-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+D3_job_verified,slurm,c,1.1,1,bool,d3c-slurm-155622-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+D3_job_message,slurm,c,1.1,-,text,d3c-slurm-155622-1-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+D3_job_exit,slurm,c,1.2,0,code,d3c-slurm-155622-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+D3_job_verified,slurm,c,1.2,1,bool,d3c-slurm-155622-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+D3_job_message,slurm,c,1.2,-,text,d3c-slurm-155622-1-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:38Z
+M4_outcome,slurm,c,1,both-concurrent,outcome,d3c-slurm-155622-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:39Z
+M4_makespan_s,slurm,c,1,75.252,s,d3c-slurm-155622-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:57:39Z
+D3_job_exit,slurm,c,2.1,0,code,d3c-slurm-155739-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_verified,slurm,c,2.1,1,bool,d3c-slurm-155739-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_message,slurm,c,2.1,-,text,d3c-slurm-155739-2-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_exit,slurm,c,2.2,0,code,d3c-slurm-155739-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_verified,slurm,c,2.2,1,bool,d3c-slurm-155739-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_message,slurm,c,2.2,-,text,d3c-slurm-155739-2-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+M4_outcome,slurm,c,2,both-concurrent,outcome,d3c-slurm-155739-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+M4_makespan_s,slurm,c,2,43.244,s,d3c-slurm-155739-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:58:23Z
+D3_job_exit,slurm,c,3.1,0,code,d3c-slurm-155823-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+D3_job_verified,slurm,c,3.1,1,bool,d3c-slurm-155823-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+D3_job_message,slurm,c,3.1,-,text,d3c-slurm-155823-3-1,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+D3_job_exit,slurm,c,3.2,0,code,d3c-slurm-155823-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+D3_job_verified,slurm,c,3.2,1,bool,d3c-slurm-155823-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+D3_job_message,slurm,c,3.2,-,text,d3c-slurm-155823-3-2,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+M4_outcome,slurm,c,3,both-concurrent,outcome,d3c-slurm-155823-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z
+M4_makespan_s,slurm,c,3,75.258,s,d3c-slurm-155823-3,9e0f6ea,AMD EPYC 7763 64-Core Processor; 4 cpu; 15 GiB; Ubuntu 24.04.5 LTS; x86_64,2026-10-28T15:59:40Z

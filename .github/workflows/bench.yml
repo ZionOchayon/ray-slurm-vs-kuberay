@@ -27,7 +27,7 @@ permissions:
 jobs:
   bench:
     runs-on: ubuntu-24.04
-    timeout-minutes: 330
+    timeout-minutes: 355
     env:
       # 1 head + 1 worker + the submitter must fit next to the control plane on a small runner;
       # limits and num-cpus stay at 2 (docs/NOTES.md).
