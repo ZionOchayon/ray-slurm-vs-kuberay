@@ -24,7 +24,7 @@ SCHEDS = {
     "k8s": "KubeRay (RayJob on kind)",
     "slinky": "Slurm on K8s (Slinky)",
 }
-FILE_RE = re.compile(r"(?P<kind>.+)-(?P<sched>slurm|k8s)-(?P<ts>\d{8}T\d{6}Z)\.csv")
+FILE_RE = re.compile(r"(?P<kind>.+)-(?P<sched>slurm|k8s|slinky)-(?P<ts>\d{8}T\d{6}Z)\.csv")
 # Required for SC-06: every metric and drill on both schedulers.
 REQUIRED = {
     "M1": "M1_submit_to_first_step_s",

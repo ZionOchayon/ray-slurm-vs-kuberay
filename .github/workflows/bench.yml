@@ -4,7 +4,8 @@ name: bench
 # Manual only: it takes hours. The results are uploaded as an artifact and committed by hand, so every
 # number in the README comes from this script on a stated host. Pushing a branch named bench-run/* runs
 # it with the defaults; bench-smoke/* runs one rep of everything (a check of the scripts, not results);
-# bench-only/<step>[+<step>...] runs only those steps (BENCH_STEPS) on both schedulers.
+# bench-only/<step>[+<step>...] runs only those steps (BENCH_STEPS) on every scheduler;
+# bench-smoke/<scheduler> runs the smoke check on that scheduler only (BENCH_SCHEDS).
 on:
   push:
     branches: ["bench-run/**", "bench-smoke/**", "bench-only/**"]
@@ -48,6 +49,9 @@ jobs:
           SMOKE: ${{ startsWith(github.ref_name, 'bench-smoke/') }}
           REF: ${{ github.ref_name }}
         run: |
+          if [[ $REF =~ ^bench-smoke/(slurm|k8s|slinky)$ ]]; then
+            export BENCH_SCHEDS="${BASH_REMATCH[1]}"
+          fi
           if [[ $REF == bench-only/* ]]; then
             export BENCH_STEPS="${REF#bench-only/}"
             export BENCH_STEPS="${BENCH_STEPS//+/ }"
