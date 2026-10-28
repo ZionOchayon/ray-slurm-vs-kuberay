@@ -8,7 +8,7 @@ source drills/lib.sh
 : "${REPS:?}"
 
 csv_open drill-kill-worker
-k8s_setup
+sched_setup
 failed=0
 for rep in $(seq "$REPS"); do
   run="d1-$SCHED-$(date -u +%H%M%S)-$rep"
@@ -22,10 +22,10 @@ for rep in $(seq "$REPS"); do
     continue
   fi
 
-  if [[ $SCHED == slurm ]]; then
-    job=$(docker exec slurmctld squeue -h --name="$run" -o %A)
-    batch_host=$(docker exec slurmctld squeue -h -j "$job" -o %B)
-    other=$(docker exec slurmctld bash -c "scontrol show hostnames \$(squeue -h -j $job -o %N)" | grep -vx "$batch_host" | head -n 1)
+  if [[ $SCHED != k8s ]]; then
+    job=$(sx squeue -h --name="$run" -o %A)
+    batch_host=$(sx squeue -h -j "$job" -o %B)
+    other=$(sx bash -c "scontrol show hostnames \$(squeue -h -j $job -o %N)" | grep -vx "$batch_host" | head -n 1)
     ts=$(inject srun --jobid="$job" --overlap -w "$other" pkill -9 -f RayTrainWorker | head -n 1) || true
   else
     pod=$(k8s_pod "$run" worker)
