@@ -3,7 +3,8 @@
 Uses Ray Train V2 (the default in Ray 2.59.0). Trains on seeded synthetic data (no network, no files)
 or on FashionMNIST, which the driver downloads once before fit(). Resumes from the latest checkpoint
 of the same RunConfig(storage_path, name) and appends JSON Lines events to <run>/events.jsonl
-(schema: docs/SPEC.md §9.5). Multi-node runs need --storage-path on a shared filesystem.
+(schema: docs/SPEC.md §9.5). Rank 0 mirrors some events as Ray metrics for Prometheus (§18.3).
+Multi-node runs need --storage-path on a shared filesystem.
 Exit: 0 finished, 1 training failed, 2 invalid arguments.
 """
 
@@ -22,6 +23,7 @@ import ray
 import ray.train
 import ray.train.torch
 import torch
+from ray.util.metrics import Counter, Gauge
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -145,9 +147,24 @@ def train_loop(config: dict) -> None:
     restarts = config["restart_count"]
     events = config["events_path"]
 
+    # Exported by Ray as ray_rsk_epoch_seconds, ray_rsk_global_step, ray_rsk_restores_total (SPEC FR-51).
+    # Observability only: bench/ reads events.jsonl, never these.
+    if rank == 0:
+        tags = {"run": config["run"]}
+        epoch_seconds = Gauge("rsk_epoch_seconds", "Training time of the last epoch", tag_keys=("run",))
+        global_step = Gauge("rsk_global_step", "Optimizer steps so far", tag_keys=("run",))
+        restores = Counter("rsk_restores", "Checkpoint restores", tag_keys=("run",))
+
     def log_event(event: str, **kw) -> None:
-        if rank == 0:
-            emit(events, event, restarts, **kw)
+        if rank != 0:
+            return
+        emit(events, event, restarts, **kw)
+        if kw.get("global_step") is not None:
+            global_step.set(kw["global_step"], tags=tags)
+        if event == "epoch_end":
+            epoch_seconds.set(kw["epoch_train_s"], tags=tags)
+        elif event == "restored":
+            restores.inc(1, tags=tags)
 
     log_event("loop_start")
 
@@ -264,6 +281,7 @@ def main(argv=None) -> None:
     trainer = ray.train.torch.TorchTrainer(
         train_loop,
         train_loop_config={
+            "run": a.run_name,
             "epochs": a.epochs,
             "data": a.data,
             "dataset_dir": a.dataset_dir,

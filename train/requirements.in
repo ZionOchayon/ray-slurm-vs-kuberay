@@ -1,9 +1,9 @@
 # Python dependencies of train.py, for both images (slurm/Dockerfile, k8s/Dockerfile). Versions must match
-# versions.env; the Dockerfiles check that. Regenerate train/requirements.lock after any change with:
+# versions.env; the Dockerfiles check that. ray[default] brings the metrics agent (SPEC §18.3). Regenerate train/requirements.lock after any change with:
 #   uv pip compile train/requirements.in --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
 #     --generate-hashes --index-url https://download.pytorch.org/whl/cpu \
 #     --extra-index-url https://pypi.org/simple --index-strategy unsafe-best-match -o train/requirements.lock
 # The lock lists every artifact's hash for each pinned version, so it serves aarch64 as well.
 torch==2.14.1+cpu
 torchvision==0.29.1+cpu
-ray[train]==2.59.0
+ray[default,train]==2.59.0
