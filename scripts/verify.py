@@ -1,7 +1,8 @@
 """Check a training run from its artifacts, not only from its job state.
 
-Runs inside the slurmctld container (`make verify`), or with --no-slurm inside the K8s image
-(`make verify SCHED=k8s`). Checks C1-C6 from docs/SPEC.md FR-08.
+Runs inside the slurmctld container (`make verify`), with --no-slurm inside the K8s image
+(`make verify SCHED=k8s`), or with --slurm-state inside the Slinky image (`make verify SCHED=slinky`,
+where sacct runs in the cluster and the state is passed in). Checks C1-C6 from docs/SPEC.md FR-08.
 Exit: 0 all checks pass, 1 any check fails, 2 invalid arguments.
 """
 
@@ -57,6 +58,7 @@ def main() -> int:
     p.add_argument("--train-py", default="/opt/rayslurm/train/train.py", help="file C6 hashes")
     p.add_argument("--no-slurm", action="store_true", help="K8s run: no sacct, no Slurm job log")
     p.add_argument("--job-state", default="", help="with --no-slurm: final RayJob jobStatus")
+    p.add_argument("--slurm-state", help="'STATE|EXITCODE' from sacct, instead of running sacct here")
     a = p.parse_args()
     if not RUN_RE.fullmatch(a.run):
         p.error("--run must match the RUN pattern")
@@ -71,7 +73,7 @@ def main() -> int:
             ("C1 RayJob SUCCEEDED", a.job_state == "SUCCEEDED", f"jobStatus={a.job_state or '?'}")
         )
     else:
-        state = sacct_state(a.job_id)
+        state = a.slurm_state if a.slurm_state is not None else sacct_state(a.job_id)
         results.append(("C1 job COMPLETED, exit 0:0", state == "COMPLETED|0:0", state))
 
     run_json = {}

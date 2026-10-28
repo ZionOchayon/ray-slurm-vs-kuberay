@@ -1,0 +1,68 @@
+# MariaDB for Slinky's slurmdbd (accounting), so `sacct` works as on the Compose cluster. Same pinned image
+# and the same lab-only credentials as slurm/docker-compose.yml; nothing outside the kind cluster reaches it.
+# scripts/up-slinky.sh replaces __MARIADB_IMAGE__.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-password
+  namespace: slurm
+stringData:
+  password: password # lab-only default, as upstream compose
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: slurm
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: slurm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: __MARIADB_IMAGE__
+          env:
+            - name: MARIADB_RANDOM_ROOT_PASSWORD
+              value: "yes"
+            - name: MARIADB_DATABASE
+              value: slurm_acct_db
+            - name: MARIADB_USER
+              value: slurm
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-password
+                  key: password
+          ports:
+            - containerPort: 3306
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          emptyDir: {}
