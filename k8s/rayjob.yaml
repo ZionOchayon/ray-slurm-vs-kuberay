@@ -37,7 +37,7 @@ spec:
         num-gpus: "0"
       template: &pod
         spec:
-          # Jobs run as root on both sides (SPEC §2); the image's default user cannot write the hostPath.
+          # Jobs run as root on both sides; the image's default user cannot write the hostPath.
           securityContext:
             runAsUser: 0
           containers:

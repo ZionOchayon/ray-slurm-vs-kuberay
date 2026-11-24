@@ -3,7 +3,7 @@
 For each (kind, scheduler), only the newest raw file is used (raw files are named
 <kind>-<scheduler>-<UTC timestamp>.csv). Every number in the table comes from these files.
 --check README.md exits 1 if the README block differs from the generated table, or if a metric or
-drill has no data for a scheduler (SC-04, SC-06). Standard library only; runs in any project image.
+drill has no data for a scheduler. Standard library only; runs in any project image.
 Exit: 0 ok, 1 check failed, 2 invalid arguments.
 """
 
@@ -25,7 +25,7 @@ SCHEDS = {
     "slinky": "Slurm on K8s (Slinky)",
 }
 FILE_RE = re.compile(r"(?P<kind>.+)-(?P<sched>slurm|k8s|slinky)-(?P<ts>\d{8}T\d{6}Z)\.csv")
-# Required for SC-06: every metric and drill on both schedulers.
+# Required: every metric and drill on every scheduler.
 REQUIRED = {
     "M1": "M1_submit_to_first_step_s",
     "M2": "M2_epoch_train_s",

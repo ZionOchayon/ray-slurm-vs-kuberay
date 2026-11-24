@@ -1,6 +1,6 @@
 # Prometheus and Grafana inside kind (`make metrics-up SCHED=k8s`), namespace monitoring. The config and
 # dashboard ConfigMaps are created by scripts/metrics.sh from observability/; it also replaces the
-# __PROMETHEUS_IMAGE__ and __GRAFANA_IMAGE__ placeholders. SPEC §18.3.
+# __PROMETHEUS_IMAGE__ and __GRAFANA_IMAGE__ placeholders.
 apiVersion: v1
 kind: ServiceAccount
 metadata: { name: prometheus, namespace: monitoring }

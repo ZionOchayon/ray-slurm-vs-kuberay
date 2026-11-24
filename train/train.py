@@ -3,7 +3,7 @@
 Uses Ray Train V2 (the default in Ray 2.59.0). Trains on seeded synthetic data (no network, no files)
 or on FashionMNIST, which the driver downloads once before fit(). Resumes from the latest checkpoint
 of the same RunConfig(storage_path, name) and appends JSON Lines events to <run>/events.jsonl
-(schema: docs/SPEC.md §9.5). Rank 0 mirrors some events as Ray metrics for Prometheus (§18.3).
+(fields: see emit()). Rank 0 mirrors some events as Ray metrics for Prometheus.
 Multi-node runs need --storage-path on a shared filesystem.
 Exit: 0 finished, 1 training failed, 2 invalid arguments.
 """
@@ -71,7 +71,7 @@ def detect_scheduler() -> tuple[str, str | None]:
 
 def emit(path: str, event: str, restart_count: int, epoch=None, global_step=None,
          epoch_train_s=None, ckpt_s=None) -> None:
-    """Append one event to events.jsonl (schema in SPEC §9.5). One write() per line keeps lines whole."""
+    """Append one event to events.jsonl (this record is the schema). One write() per line keeps lines whole."""
     rec = {
         "ts": time.time(), "event": event, "epoch": epoch, "global_step": global_step,
         "restart_count": restart_count, "epoch_train_s": epoch_train_s, "ckpt_s": ckpt_s,
@@ -147,7 +147,7 @@ def train_loop(config: dict) -> None:
     restarts = config["restart_count"]
     events = config["events_path"]
 
-    # Exported by Ray as ray_rsk_epoch_seconds, ray_rsk_global_step, ray_rsk_restores_total (SPEC FR-51).
+    # Exported by Ray as ray_rsk_epoch_seconds, ray_rsk_global_step, ray_rsk_restores_total.
     # Observability only: bench/ reads events.jsonl, never these.
     if rank == 0:
         tags = {"run": config["run"]}

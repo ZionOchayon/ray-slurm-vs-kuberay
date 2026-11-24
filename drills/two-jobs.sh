@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Drill D3 (SPEC §11, FR-23, FR-27): two training jobs submitted back to back onto the same nodes.
+# Drill D3: two training jobs submitted back to back onto the same nodes.
 #   Slurm: (a) default ray-symmetric, (b) EXCLUSIVE=1, (c) LAUNCHER=manual (per-job ports).
 #   K8s:   (k) two RayJobs.
 # Records M4 per rep: each job's terminal state and last error line, the outcome (concurrent, serialized,
 # second-failed or other) and the makespan from the first submit to the last terminal state.
 # Pass: the drill completes, and in (b) and (k) both runs pass `make verify`. A failure in (a) is the
-# expected finding; a failure in (c) is recorded as a finding, not a drill defect (SPEC §11 D3).
+# expected finding; a failure in (c) is recorded as a finding, not a drill defect.
 # Exit: 0 pass, 1 fail, 2 invalid input.
 set -euo pipefail
 source drills/lib.sh

@@ -6,7 +6,7 @@
 #SBATCH --output=/data/logs/%x-%j.out
 #
 # Ray on Slurm, started by hand so that two jobs can share nodes: the head with `srun -w <head>`,
-# the workers with `srun --exclude <head>`, every Ray port taken from a per-job block (SPEC §8.5) and
+# the workers with `srun --exclude <head>`, every Ray port taken from a per-job block and
 # a per-job --temp-dir. The driver runs in this batch shell with RAY_ADDRESS pointing at this job's
 # head, so it never attaches to another job's cluster. base+3 (--ray-client-server-port) stays unused:
 # the image has ray[train] without ray[client], so Ray starts no client server, and setting the port fails.

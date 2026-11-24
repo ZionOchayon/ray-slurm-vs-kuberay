@@ -1,6 +1,6 @@
 # Slurm node image: upstream slurm-docker-cluster plus a Ray + PyTorch (CPU) venv.
 # All versions come from versions.env; the ARGs have no defaults on purpose (a missing pin fails the build).
-# Python packages come from the hash-locked train/requirements.lock (FR-31), checked against the ARGs.
+# Python packages come from the hash-locked train/requirements.lock, checked against the ARGs.
 ARG SLURM_BASE_IMAGE
 FROM ${SLURM_BASE_IMAGE}
 
@@ -19,6 +19,6 @@ RUN test -n "${RAY_VERSION}" && test -n "${TORCH_VERSION}" && test -n "${TORCHVI
         --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
     && rm /tmp/requirements.lock
 
-# Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token (SPEC §18.3).
+# Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token.
 # The compose volume etc_slurm is first filled from this directory.
 RUN printf 'MetricsType=metrics/openmetrics\nMetricsParameters=ignore_private_data\n' >> /etc/slurm/slurm.conf

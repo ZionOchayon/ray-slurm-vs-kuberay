@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Drill D1 (SPEC §11, FR-25): kill one Ray Train worker process on the non-head node after the first
+# Drill D1: kill one Ray Train worker process on the non-head node after the first
 # checkpoint. Expected: Ray Train restarts the worker group (max_failures=3), restores the latest
 # checkpoint and the job still ends COMPLETED / SUCCEEDED. Records M3 (time_to_resume_s, steps_lost).
 # Exit: 0 every rep passed, 1 any rep failed, 2 invalid input.

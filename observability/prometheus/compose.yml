@@ -1,4 +1,4 @@
-# Prometheus for the Compose Slurm cluster (`make metrics-up`). SPEC §18.3.
+# Prometheus for the Compose Slurm cluster (`make metrics-up`).
 global:
   scrape_interval: 5s
   evaluation_interval: 5s

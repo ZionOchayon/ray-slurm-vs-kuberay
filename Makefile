@@ -1,4 +1,4 @@
-# The single interface of the lab. Targets and variables: docs/SPEC.md §9.1.
+# The single interface of the lab. Targets and variables: see README.md.
 # Note: GNU make reports any failing recipe as exit 2; the scripts print their own exit code reason.
 SHELL := /bin/bash
 

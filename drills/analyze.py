@@ -1,7 +1,7 @@
 """Read a run's events.jsonl and print key=value lines for the drill and bench scripts.
 
 Runs inside a container that sees the run's /data (slurmctld, or the K8s image with .data/k8s
-mounted), so the host needs no Python. Event schema: docs/SPEC.md §9.5.
+mounted), so the host needs no Python. Event schema: emit() in train/train.py.
 Exit: 0 ok, 1 the events do not contain what the command needs, 2 invalid arguments.
 """
 

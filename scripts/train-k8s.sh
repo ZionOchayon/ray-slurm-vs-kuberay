@@ -49,7 +49,7 @@ if [[ "$K8S_SETUP" != 0 ]]; then
 fi
 [[ "$K8S_SETUP" == only ]] && exit 0
 
-# The same RUN again (resume, FR-12) needs the finished RayJob of that name out of the way first.
+# The same RUN again (resume) needs the finished RayJob of that name out of the way first.
 k delete rayjob "$RUN" --ignore-not-found --wait=true >/dev/null
 sed -e "s|__RUN__|$RUN|g" -e "s|__EPOCHS__|$EPOCHS|g" -e "s|__WORKERS__|$WORKERS|g" \
   -e "s|__DATA__|$DATA|g" -e "s|__SAMPLES__|$SAMPLES|g" -e "s|__BACKOFF_LIMIT__|$BACKOFF_LIMIT|g" \

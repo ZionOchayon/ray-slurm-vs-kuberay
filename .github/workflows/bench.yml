@@ -1,6 +1,6 @@
 name: bench
 
-# `make bench` on one GitHub-hosted runner, both schedulers one after the other (SPEC FR-28).
+# `make bench` on one GitHub-hosted runner, both schedulers one after the other.
 # Manual only: it takes hours. The results are uploaded as an artifact and committed by hand, so every
 # number in the README comes from this script on a stated host. Pushing a branch named bench-run/* runs
 # it with the defaults; bench-smoke/* runs one rep of everything (a check of the scripts, not results);

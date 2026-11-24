@@ -1,5 +1,5 @@
 # Ray on K8s image: the pinned rayproject/ray CPU image plus the same hash-locked Python packages as
-# slurm/Dockerfile (train/requirements.lock, FR-31), with train/ baked in at the path the Slurm side
+# slurm/Dockerfile (train/requirements.lock), with train/ baked in at the path the Slurm side
 # mounts it (/opt/rayslurm/train). All versions come from versions.env; the ARGs have no defaults on
 # purpose (a missing pin fails the build).
 ARG RAY_IMAGE

@@ -111,7 +111,7 @@ sched_setup() {
   esac
 }
 
-# CSV: metric, scheduler, config, rep, value, unit, run, git_sha, host_profile, date (SPEC §9.5).
+# CSV: metric, scheduler, config, rep, value, unit, run, git_sha, host_profile, date.
 host_profile() {
   local model ncpu mem os arch
   model=$(sed -n 's/^model name[[:space:]]*: //p' /proc/cpuinfo | head -n 1)

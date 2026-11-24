@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `make metrics-up` / `make metrics-check` (SPEC FR-50, FR-52).
+# `make metrics-up` / `make metrics-check`.
 #   up:    start Prometheus + Grafana for SCHED's stack (slurm: compose profile; k8s or slinky: kind).
 #   check: ask Prometheus for a sample of ray_rsk_epoch_seconds and (Slurm stacks) slurm_jobs within the
 #          last hour, and ask Grafana for the dashboard. Exit 1 if anything is missing.

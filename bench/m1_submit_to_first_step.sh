@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M1 (SPEC §10): wall time from submission to the first completed optimizer step, warm (cluster up,
+# M1: wall time from submission to the first completed optimizer step, warm (cluster up,
 # images cached), REPS_M1 fresh runs with EPOCHS=1. The submit timestamp is taken inside the VM right
 # before sbatch / kubectl apply; the end is first_step (restart_count 0) from events.jsonl.
 # Exit: 0 every rep measured, 1 otherwise.

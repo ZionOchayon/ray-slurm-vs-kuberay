@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M2 (SPEC §10): seconds per epoch with 1 and 2 Ray Train workers on the same 2-node allocation
+# M2: seconds per epoch with 1 and 2 Ray Train workers on the same 2-node allocation
 # (Slurm) or the same head + worker pod pair (K8s). REPS_M2 runs per worker count, EPOCHS=3,
 # SAMPLES=60000, batch 128; epoch 0 is warm-up and is not reported. Checkpoint time is separate.
 # Exit: 0 every run measured, 1 otherwise.

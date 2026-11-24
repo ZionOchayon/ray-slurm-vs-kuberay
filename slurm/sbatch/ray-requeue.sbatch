@@ -10,7 +10,7 @@
 #
 # ray-symmetric.sbatch plus preemption handling: Slurm sends USR1 to this batch shell 60 s before the
 # time limit (or `scancel --batch --signal=USR1` does, in drill D2), and the trap requeues the job.
-# RUN is fixed at submission, so the restarted job resumes from the latest checkpoint (FR-12).
+# RUN is fixed at submission, so the restarted job resumes from the latest checkpoint.
 # The log is opened in append mode, so it keeps every attempt.
 set -euo pipefail
 source /opt/rayslurm/slurm/sbatch/lib.sh

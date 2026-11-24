@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# `make bench` (SPEC FR-28): M1 and M2 on both schedulers, then the three drills on both, then
+# `make bench`: M1 and M2 on both schedulers, then the three drills on both, then
 # bench/summarize.py (results.csv, table.md, README block). One scheduler at a time, so the two lab
-# clusters never compete for the same CPUs; `docker stats` is sampled every 5 s for peak memory (NFR-04).
+# clusters never compete for the same CPUs; `docker stats` is sampled every 5 s for peak memory.
 # BENCH_SCHEDS limits the schedulers (default "slurm k8s slinky"), BENCH_STEPS the steps (default
 # "m1 m2 kill-worker preempt two-jobs"). Exit: 0 every step passed, 1 otherwise.
 set -euo pipefail

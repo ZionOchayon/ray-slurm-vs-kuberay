@@ -135,7 +135,7 @@ services:
       replicas: 2
 
   # `make metrics-up` (profile metrics): Prometheus scrapes slurmctld's OpenMetrics and the Ray nodes,
-  # Grafana shows observability/grafana/rsk-dashboard.json (SPEC §18.3).
+  # Grafana shows observability/grafana/rsk-dashboard.json.
   prometheus:
     image: ${PROMETHEUS_IMAGE}
     profiles: [metrics]

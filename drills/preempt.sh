@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Drill D2 (SPEC §11, FR-24, FR-26): preempt a run after its first registered checkpoint.
+# Drill D2: preempt a run after its first registered checkpoint.
 #   Slurm, ray-requeue.sbatch: "usr1-trap" sends USR1 to the batch shell (as --signal=B:USR1@60 would)
 #   and the trap runs `scontrol requeue`; "admin-requeue" runs `scontrol requeue` directly.
 #   K8s: "head-pod-delete" deletes the Ray head pod of a RayJob with backoffLimit 1.
@@ -48,7 +48,7 @@ for config in "${configs[@]}"; do
     wait "$TRAIN_PID" || rc=$?
     out=$(analyze resume "$run" --since "$ts" || true)
     echo "$out"
-    # D2's pass rule (SPEC §11) does not include C4: after a head pod is recreated, Ray may place both
+    # D2's pass rule does not include C4: after a head pod is recreated, Ray may place both
     # Train workers on the new head before the worker pod rejoins (SPREAD is best effort). C4 is
     # recorded as its own row instead.
     verify_run "$run" || true

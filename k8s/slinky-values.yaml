@@ -1,6 +1,6 @@
 # Values for SchedMD's `slurm` chart (Slinky): a Slurm cluster whose daemons are pods, inside the kind
 # cluster that also runs KubeRay. scripts/up-slinky.sh fills in the double-underscore placeholders from versions.env.
-# Differences from the chart defaults, and why: docs/SPEC.md §18.1.
+# Each difference from the chart defaults is commented where it is set.
 imagePullPolicy: IfNotPresent
 
 controller:
@@ -13,7 +13,7 @@ controller:
   # A lab cluster is recreated, not upgraded; no state to keep across restarts.
   persistence:
     enabled: false
-  # Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token (§18.3).
+  # Slurm's built-in OpenMetrics endpoints on slurmctld's port, readable without a token.
   metrics:
     enabled: true
   extraConfMap:

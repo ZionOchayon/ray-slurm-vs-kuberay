@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `make up-slinky` (SPEC FR-40): in the kind cluster rayk8s, install SchedMD's slurm-operator, MariaDB for
+# `make up-slinky`: in the kind cluster rayk8s, install SchedMD's slurm-operator, MariaDB for
 # accounting and a Slurm cluster (the `slurm` chart) whose slurmd pods run the rayslinky image; return when
 # partition cpu has 2 idle nodes. Idempotent: a second run restarts the slurmd pods only if the image changed.
 # Exit: 0 ready, 1 tool or install failure, 124 nodes not idle in time.

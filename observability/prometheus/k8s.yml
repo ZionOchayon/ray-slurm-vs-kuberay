@@ -1,5 +1,5 @@
 # Prometheus inside kind (`make metrics-up SCHED=k8s`): KubeRay's Ray pods, Slinky's slurmd pods (Ray on
-# port 8080) and Slinky's slurmctld (Slurm OpenMetrics on 6817). SPEC §18.3.
+# port 8080) and Slinky's slurmctld (Slurm OpenMetrics on 6817).
 global:
   scrape_interval: 5s
   evaluation_interval: 5s

@@ -2,7 +2,7 @@
 
 Runs inside the slurmctld container (`make verify`), with --no-slurm inside the K8s image
 (`make verify SCHED=k8s`), or with --slurm-state inside the Slinky image (`make verify SCHED=slinky`,
-where sacct runs in the cluster and the state is passed in). Checks C1-C6 from docs/SPEC.md FR-08.
+where sacct runs in the cluster and the state is passed in). Checks C1-C6 (listed in README.md).
 Exit: 0 all checks pass, 1 any check fails, 2 invalid arguments.
 """
 
