@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="314" viewBox="0 0 760 314" role="img" aria-label="Two training jobs submitted onto the same nodes">
+<title>Two training jobs submitted onto the same nodes</title><style>text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;fill:#1f2328}.t{font-size:16px;font-weight:600}.n,.v,.l,.k{font-size:12px}.n,.k,.m{fill:#59636e}.k{font-size:11px}.grid{stroke:#d1d9e0}.rng{stroke:#59636e;stroke-width:1.5}.bad{fill:#cf222e}@media (prefers-color-scheme:dark){text{fill:#f0f6fc}.n,.k,.m{fill:#9198a1}.grid{stroke:#3d444d}.rng{stroke:#9198a1}.bad{fill:#ff7b72}}</style>
+<text class="t" x="16" y="24">Two training jobs submitted onto the same nodes</text>
+<text class="n" x="16" y="44">Time until both jobs end (median of 3 runs), and what happened.</text>
+<line class="grid" x1="188.0" x2="188.0" y1="60" y2="292"/>
+<text class="k" x="188.0" y="306" text-anchor="middle">0</text>
+<line class="grid" x1="263.0" x2="263.0" y1="60" y2="292"/>
+<text class="k" x="263.0" y="306" text-anchor="middle">250</text>
+<line class="grid" x1="338.1" x2="338.1" y1="60" y2="292"/>
+<text class="k" x="338.1" y="306" text-anchor="middle">500</text>
+<line class="grid" x1="413.1" x2="413.1" y1="60" y2="292"/>
+<text class="k" x="413.1" y="306" text-anchor="middle">750</text>
+<line class="grid" x1="488.2" x2="488.2" y1="60" y2="292"/>
+<text class="k" x="488.2" y="306" text-anchor="middle">1000</text>
+<line class="grid" x1="563.2" x2="563.2" y1="60" y2="292"/>
+<text class="k" x="563.2" y="306" text-anchor="middle">1250 s</text>
+<text class="l" x="176.0" y="84.0" text-anchor="end">Slurm, default</text>
+<rect x="188.0" y="72.0" width="339.5" height="16" rx="2" fill="#3d6fd6" fill-opacity="1.0"/>
+<line class="rng" x1="440.9" x2="546.8" y1="80.0" y2="80.0"/>
+<line class="rng" x1="440.9" x2="440.9" y1="75.0" y2="85.0"/>
+<line class="rng" x1="546.8" x2="546.8" y1="75.0" y2="85.0"/>
+<text class="v" x="552.8" y="84.0">1131 s</text>
+<text class="v bad" x="604.0" y="84.0">both failed 3/3</text>
+<text class="l" x="176.0" y="116.0" text-anchor="end">Slurm, --exclusive</text>
+<rect x="188.0" y="104.0" width="70.4" height="16" rx="2" fill="#3d6fd6" fill-opacity="1.0"/>
+<line class="rng" x1="258.4" x2="258.5" y1="112.0" y2="112.0"/>
+<line class="rng" x1="258.4" x2="258.4" y1="107.0" y2="117.0"/>
+<line class="rng" x1="258.5" x2="258.5" y1="107.0" y2="117.0"/>
+<text class="v" x="264.5" y="116.0">235 s</text>
+<text class="v m" x="309.3" y="116.0">serialized 3/3</text>
+<text class="l" x="176.0" y="148.0" text-anchor="end">Slurm, per-job Ray ports</text>
+<rect x="188.0" y="136.0" width="22.6" height="16" rx="2" fill="#3d6fd6" fill-opacity="1.0"/>
+<line class="rng" x1="201.0" x2="210.6" y1="144.0" y2="144.0"/>
+<line class="rng" x1="201.0" x2="201.0" y1="139.0" y2="149.0"/>
+<line class="rng" x1="210.6" x2="210.6" y1="139.0" y2="149.0"/>
+<text class="v" x="216.6" y="148.0">75.3 s</text>
+<text class="v m" x="267.8" y="148.0">both concurrent 3/3</text>
+<text class="l" x="176.0" y="180.0" text-anchor="end">Slinky, default</text>
+<rect x="188.0" y="168.0" width="339.5" height="16" rx="2" fill="#2a9d7c" fill-opacity="1.0"/>
+<line class="rng" x1="441.2" x2="527.8" y1="176.0" y2="176.0"/>
+<line class="rng" x1="441.2" x2="441.2" y1="171.0" y2="181.0"/>
+<line class="rng" x1="527.8" x2="527.8" y1="171.0" y2="181.0"/>
+<text class="v" x="533.8" y="180.0">1131 s</text>
+<text class="v bad" x="585.0" y="180.0">both failed 3/3</text>
+<text class="l" x="176.0" y="212.0" text-anchor="end">Slinky, --exclusive</text>
+<rect x="188.0" y="200.0" width="70.7" height="16" rx="2" fill="#2a9d7c" fill-opacity="1.0"/>
+<line class="rng" x1="258.7" x2="258.7" y1="208.0" y2="208.0"/>
+<line class="rng" x1="258.7" x2="258.7" y1="203.0" y2="213.0"/>
+<line class="rng" x1="258.7" x2="258.7" y1="203.0" y2="213.0"/>
+<text class="v" x="264.7" y="212.0">236 s</text>
+<text class="v m" x="309.5" y="212.0">serialized 3/3</text>
+<text class="l" x="176.0" y="244.0" text-anchor="end">Slinky, per-job Ray ports</text>
+<rect x="188.0" y="232.0" width="13.0" height="16" rx="2" fill="#2a9d7c" fill-opacity="1.0"/>
+<line class="rng" x1="201.0" x2="210.6" y1="240.0" y2="240.0"/>
+<line class="rng" x1="201.0" x2="201.0" y1="235.0" y2="245.0"/>
+<line class="rng" x1="210.6" x2="210.6" y1="235.0" y2="245.0"/>
+<text class="v" x="216.6" y="244.0">43.2 s</text>
+<text class="v m" x="267.8" y="244.0">both concurrent 3/3</text>
+<text class="l" x="176.0" y="276.0" text-anchor="end">KubeRay, two RayJobs</text>
+<rect x="188.0" y="264.0" width="22.6" height="16" rx="2" fill="#e07b28" fill-opacity="1.0"/>
+<line class="rng" x1="210.3" x2="210.6" y1="272.0" y2="272.0"/>
+<line class="rng" x1="210.3" x2="210.3" y1="267.0" y2="277.0"/>
+<line class="rng" x1="210.6" x2="210.6" y1="267.0" y2="277.0"/>
+<text class="v" x="216.6" y="276.0">75.3 s</text>
+<text class="v m" x="267.8" y="276.0">both concurrent 3/3</text>
+</svg>
